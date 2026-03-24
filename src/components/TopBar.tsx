@@ -17,7 +17,7 @@ function TopBar({setShowSideBar: any, sideBarRef }: { setShowSideBar: any, sideB
       .select('profiles(*)').eq('user_id', yourUuid)
 
     if (error) console.error(error)
-    setUserData(data[0])
+    setUserData(data![0] as any)
   };
 
   const toggleSideBar = () => {
