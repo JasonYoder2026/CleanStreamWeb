@@ -43,7 +43,7 @@ function Login() {
 
   return (
     <div className="login-container" onKeyDown={handleKeyPress}>
-      <img src="./Logo.png" className="logo" alt="Logo" />
+      <img src="src\assets\Logo.png" className="logo" alt="Logo" />
 
       {/* Centered Error Message */}
       {error && <div className="error-message">{error}</div>}
