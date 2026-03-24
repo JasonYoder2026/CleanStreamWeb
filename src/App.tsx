@@ -1,4 +1,4 @@
-import './styles/App.css'
+import './App.css'
 import Login from "./components/LoginPage"
 import HomePage from './components/HomePage';
 

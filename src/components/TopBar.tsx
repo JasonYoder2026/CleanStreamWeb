@@ -3,7 +3,7 @@ import '../styles/topBar.css'
 import supabase from '../api/supabase-client'
 import HamburgerMenu from '../assets/hamburger-menu.svg'
 
-function TopBar({setShowSideBar, sideBarRef }) {
+function TopBar({setShowSideBar: any, sideBarRef }: { setShowSideBar: any, sideBarRef: React.RefObject<HTMLImageElement> }) {
   const [userData, setUserData] = useState(null)
 
   useEffect(() => {
