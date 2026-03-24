@@ -1,59 +1,104 @@
-.closed-side-bar{
-    width: 3vw;
-    height: 100%;
-    background-color: var(--primary-color);
+.closed-side-bar {
+    width: 60px;
+    height: 100vh;
+
     display: flex;
     flex-direction: column;
-}
-
-.side-bar-button{
-  display: flex;
-  height: 10%;
-  justify-content: center;
-  align-items: center;
-  color: var(--soft-white);
-}
-
-.side-bar-button:hover{
-  background-color: var(--highlight-color);
-}
-
-.side-bar-container{
-    width: 12vw;
-    height: 100%;
-    background-color: var(--primary-color);
-    animation: slideOpen 1s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.side-bar-container div{
-    width: 100%;
-    height: 10vh;
-    color: var(--soft-white);
-    display: flex;
-    justify-content: center;
     align-items: center;
-    border-bottom: solid  black 1px;
+
+    background-color: #f5f5f5;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+
+    border-radius: 0 12px 12px 0;
+    padding: 0.5rem 0;
+
+    position: relative;
+    z-index: 10;
 }
 
-.side-bar-container div:first-child{
-  border-top: solid black 1px;
-}
+.side-bar-button {
+    width: 100%;
+    height: 60px;
 
-.side-bar-container div:hover{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #222;
     cursor: pointer;
-    background-color: var(--highlight-color);
+
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
-    
+
+.side-bar-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Expanded sidebar */
+.side-bar-container {
+    width: 200px;
+    height: 100vh;
+
+    background-color: #f5f5f5;
+    color: #222;
+
+    display: flex;
+    flex-direction: column;
+
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+    border-radius: 0 12px 12px 0;
+
+    padding: 0.5rem 0;
+    overflow: hidden;
+
+    animation: slideOpen 0.25s ease;
+}
+
+/* Items inside expanded sidebar */
+.side-bar-container div {
+    width: 100%;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+
+    border-bottom: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+
+    transition: background-color 0.15s ease, color 0.15s ease;
+    margin: 1px 6px;
+    width: calc(100% - 12px);
+}
+
+.side-bar-container div:first-child {
+    border-top: none;
+}
+
+.side-bar-container div:hover {
+    background-color: #e8e8e8;
+    color: #111;
+}
+
+.side-bar-container div.active {
+    background-color: #e0e0e0;
+    color: #111;
+    font-weight: 600;
+}
 
 @keyframes slideOpen {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
