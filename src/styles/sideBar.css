@@ -4,6 +4,7 @@
     background-color: var(--primary-color);
     display: flex;
     flex-direction: column;
+    border-right: solid  black 1px;
 }
 
 .side-bar-button{
@@ -11,7 +12,7 @@
   height: 10%;
   justify-content: center;
   align-items: center;
-  color: var(--soft-white);
+  color: var(--soft-white); 
 }
 
 .side-bar-button:hover{
@@ -25,6 +26,7 @@
     animation: slideOpen 1s ease;
     display: flex;
     flex-direction: column;
+    border-right: solid  black 1px;
 }
 
 .side-bar-container div{
