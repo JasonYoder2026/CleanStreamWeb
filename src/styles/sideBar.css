@@ -1,13 +1,30 @@
+.closed-side-bar{
+    width: 3vw;
+    height: 100%;
+    background-color: var(--primary-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.side-bar-button{
+  display: flex;
+  height: 10%;
+  justify-content: center;
+  align-items: center;
+  color: var(--soft-white);
+}
+
+.side-bar-button:hover{
+  background-color: var(--highlight-color);
+}
+
 .side-bar-container{
     width: 12vw;
-    height: fit-content;
+    height: 100%;
     background-color: var(--primary-color);
-    animation: slideOpen .3s ease;
+    animation: slideOpen 1s ease;
     display: flex;
-    position: absolute;
     flex-direction: column;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
 }
 
 .side-bar-container div{
@@ -20,10 +37,8 @@
     border-bottom: solid  black 1px;
 }
 
-.side-bar-container div:last-child {
-    border-bottom: transparent;
-    border-bottom-right-radius: 8px;
-    border-bottom-left-radius: 8px;
+.side-bar-container div:first-child{
+  border-top: solid black 1px;
 }
 
 .side-bar-container div:hover{
@@ -35,10 +50,10 @@
 @keyframes slideOpen {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
