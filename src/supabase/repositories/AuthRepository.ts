@@ -1,8 +1,8 @@
-import type {AuthService} from "../../interfaces/auth_service";
+import type {AuthService} from "../../interfaces/AuthService";
 import {AuthenticationResponse} from "../enum/authentication_responses";
 import {SupabaseClient, type Session} from "@supabase/supabase-js";
 
-export class SupabaseAuthRepository implements AuthService {
+export class AuthRepository implements AuthService {
 
     private session: Session | null = null;
     private userID: string | null = null;
