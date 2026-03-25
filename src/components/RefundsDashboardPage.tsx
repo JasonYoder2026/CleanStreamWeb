@@ -1,6 +1,18 @@
 import { useState } from "react";
-import "../styles/RefundsPage.css";
-import type {Refund, RefundStatus} from '../models/Refund';
+import "../styles/refundsPage.css";
+
+type RefundStatus = "pending" | "approved" | "denied";
+
+interface Refund {
+  id: string;
+  customerName: string;
+  email: string;
+  machineId: string;
+  amount: number;
+  reason: string;
+  date: string;
+  status: RefundStatus;
+}
 
 const MOCK_REFUNDS: Refund[] = [
   {
