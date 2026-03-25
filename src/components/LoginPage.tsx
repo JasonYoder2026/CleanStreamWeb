@@ -1,6 +1,5 @@
 import {useEffect, useState} from "react";
 import '../styles/Login.css'
-import {SupabaseAuthService} from "../api/models/supabase_auth_service";
 import { authenticator } from "../api/singleton/auth_singleton";
 import { AuthenticationResponse} from "../api/Enum/authentication_responses";
 import { useNavigate } from "react-router-dom";
