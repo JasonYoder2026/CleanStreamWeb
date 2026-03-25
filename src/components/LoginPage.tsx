@@ -1,13 +1,20 @@
-import { useState } from "react";
+import {useState} from "react";
 import '../styles/Login.css'
+import {SupabaseAuthService} from "../api/models/supabase_auth_service";
+import supabase from "../api/supabase-client";
+import type {AuthService} from "../api/services/auth_service";
+import { AuthenticationResponse} from "../api/Enum/authentication_responses";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // single error message
   const [obscure, setObscure] = useState(true);
+  const navigate = useNavigate();
+  const authenticator:AuthService = new SupabaseAuthService(supabase);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Reset previous error
     setError("");
 
@@ -16,12 +23,12 @@ function Login() {
       return;
     }
 
-    // Fake login check
-    if (email !== "test@test.com" || password !== "password") {
+    // Login
+    let loginResponse:AuthenticationResponse = await authenticator.login(email, password);
+    if (loginResponse === AuthenticationResponse.failure) {
       setError("Email or Password is incorrect");
     } else {
-      alert("Logged in!");
-      setError(""); // clear error on success
+      navigate("/home");
     }
   };
 
