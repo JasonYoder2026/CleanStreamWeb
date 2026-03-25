@@ -26,6 +26,11 @@ export class SupabaseAuthService implements AuthService {
             if(response === AuthenticationResponse.invalidPermissions){
                 output = AuthenticationResponse.invalidPermissions;
             }
+
+            // Save JWT token to localStorage
+            if (data.session?.access_token) {
+                localStorage.setItem("supabase_token", data.session.access_token);
+            }
         }
 
         return output;
