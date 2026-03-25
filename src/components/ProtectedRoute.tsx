@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import {type JSX, useEffect, useState} from "react";
-import { authenticator } from "../api/singleton/auth_singleton";
+import { useAuth } from "../di/container";
 
 interface ProtectedRouteProps {
     children: JSX.Element;
@@ -8,13 +8,14 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const [isAuth, setIsAuth] = useState<boolean | null>(null);
+    const {isSession} = useAuth();
 
     useEffect(() => {
         (async () => {
-            const session = await authenticator.isSession();
+            const session = await isSession();
             setIsAuth(session);
         })();
-    }, [authenticator]);
+    });
 
     if (isAuth === null) {
         // still checking

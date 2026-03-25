@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import '../styles/Login.css'
-import { authenticator } from "../api/singleton/auth_singleton";
-import { AuthenticationResponse} from "../api/enum/authentication_responses";
+import { useAuth } from "../di/container";
+import { AuthenticationResponse} from "../supabase/enum/authentication_responses";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -10,6 +10,7 @@ function Login() {
   const [error, setError] = useState(""); // single error message
   const [obscure, setObscure] = useState(true);
   const navigate = useNavigate();
+  const {login} = useAuth();
 
   const handleLogin = async () => {
     // Reset previous error
@@ -21,7 +22,7 @@ function Login() {
     }
 
     // Login
-    let loginResponse:AuthenticationResponse = await authenticator.login(email, password);
+    let loginResponse:AuthenticationResponse = await login(email, password);
     if (loginResponse === AuthenticationResponse.failure) {
       setError("Email or Password is incorrect");
     }else if(loginResponse === AuthenticationResponse.invalidPermissions){
