@@ -27,7 +27,9 @@ function Login() {
     let loginResponse:AuthenticationResponse = await authenticator.login(email, password);
     if (loginResponse === AuthenticationResponse.failure) {
       setError("Email or Password is incorrect");
-    } else {
+    }else if(loginResponse === AuthenticationResponse.invalidPermissions){
+      setError("Invalid Permissions. Must be an Owner or Admin!");
+    }else{
       navigate("/home");
     }
   };

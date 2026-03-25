@@ -2,5 +2,6 @@ export enum AuthenticationResponse{
     success,
     failure,
     owner,
-    admin
+    admin,
+    invalidPermissions
 }
