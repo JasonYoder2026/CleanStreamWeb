@@ -1,15 +1,19 @@
 import "./styles/App.css";
 import Login from "./components/LoginPage";
 import HomePage from "./components/HomePage";
+import RefundsPage from "./components/RefundsDashboardPage";
 
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, } from "react-router-dom";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />}>
+          <Route index element={<div>Dashboard</div>} />
+          <Route path="refunds" element={<RefundsPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

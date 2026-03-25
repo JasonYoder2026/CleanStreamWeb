@@ -1,8 +1,7 @@
 import SideBar from "./SideBar";
 import TopBar from "./TopBar";
-import { Routes, Route } from "react-router-dom";
-import Dashboard from "./DashboardPage";
-import RefundsDashboard from "./RefundsDashboardPage";
+import { Outlet } from "react-router-dom";
+import "../styles/homePage.css";
 
 
 function HomePage() {
@@ -12,10 +11,7 @@ function HomePage() {
       <SideBar />
 
       <div className="content">
-        <Routes>
-          <Route path="/home" element={<Dashboard />} />
-          <Route path="/home/refunds" element={<RefundsDashboard />} />
-        </Routes>
+        <Outlet />
       </div>
     </div>
   );
