@@ -4,7 +4,7 @@ import HomePage from "./components/HomePage";
 import RefundsPage from "./components/RefundsDashboardPage";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "./middlewear/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function App() {
     return (

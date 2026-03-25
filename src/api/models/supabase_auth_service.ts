@@ -1,10 +1,12 @@
 import type {AuthService} from "../services/auth_service";
 import {AuthenticationResponse} from "../Enum/authentication_responses";
-import type {SupabaseClient} from "@supabase/supabase-js";
+import type {Session,SupabaseClient} from "@supabase/supabase-js";
 
 export class SupabaseAuthService implements AuthService {
 
     private client: SupabaseClient;
+    private session: Session | null = null;
+    private userID: string | null = null;
 
     constructor(client: SupabaseClient) {
         this.client = client;
@@ -27,10 +29,14 @@ export class SupabaseAuthService implements AuthService {
                 output = AuthenticationResponse.invalidPermissions;
             }
 
-            // Save JWT token to localStorage
-            if (data.session?.access_token) {
-                localStorage.setItem("supabase_token", data.session.access_token);
+            // Save the session
+            if (data.session != null) {
+                this.session = data.session;
             }
+
+            //Save the userID
+            this.userID = data.user.id;
+
         }
 
         return output;
@@ -56,5 +62,13 @@ export class SupabaseAuthService implements AuthService {
         }
 
         return output;
+    }
+
+    async isSession(): Promise<boolean> {
+        return this.session != null;
+    }
+
+    getUserID(): string | null {
+        return this.userID;
     }
 }

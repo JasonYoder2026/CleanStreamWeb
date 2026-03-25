@@ -1,8 +1,7 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import '../styles/Login.css'
 import {SupabaseAuthService} from "../api/models/supabase_auth_service";
-import supabase from "../api/supabase-client";
-import type {AuthService} from "../api/services/auth_service";
+import { authenticator } from "../api/singleton/auth_singleton";
 import { AuthenticationResponse} from "../api/Enum/authentication_responses";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +11,6 @@ function Login() {
   const [error, setError] = useState(""); // single error message
   const [obscure, setObscure] = useState(true);
   const navigate = useNavigate();
-  const authenticator:AuthService = new SupabaseAuthService(supabase);
 
   const handleLogin = async () => {
     // Reset previous error
