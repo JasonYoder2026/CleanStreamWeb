@@ -1,4 +1,4 @@
-import { AuthenticationResponse } from "../Enum/authentication_responses";
+import { AuthenticationResponse } from "../enum/authentication_responses";
 
 export interface AuthService{
     login(email:string,password:string): Promise<AuthenticationResponse>;

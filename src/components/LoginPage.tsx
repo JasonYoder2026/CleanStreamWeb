@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import '../styles/Login.css'
 import { authenticator } from "../api/singleton/auth_singleton";
-import { AuthenticationResponse} from "../api/Enum/authentication_responses";
+import { AuthenticationResponse} from "../api/enum/authentication_responses";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
