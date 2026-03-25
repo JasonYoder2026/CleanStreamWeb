@@ -10,7 +10,9 @@ function HomePage() {
       <TopBar />
       <div className="content">
         <SideBar />
-        <Outlet />
+        <div className="page-content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
