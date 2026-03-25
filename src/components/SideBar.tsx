@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import "../styles/sideBar.css";
 import {
   ArrowBigLeft,
@@ -19,21 +20,21 @@ function SideBar() {
   } else {
     return (
       <div className="side-bar-container">
-        <div onClick={() => setShowSideBar(false)}>
+        <div  className="sidebar-item" onClick={() => setShowSideBar(false)}>
           <ArrowBigLeft />
         </div>
-        <div>
+        <Link to="/home/refunds" className="sidebar-item">
           <Landmark />
           Refunds
-        </div>
-        <div>
+        </Link>
+        <Link to='/home/locations' className="sidebar-item">
           <Map />
           Locations
-        </div>
-        <div>
+        </Link>
+        <Link to='/home/settings' className="sidebar-item">
           <Settings />
           Settings
-        </div>
+        </Link>
       </div>
     );
   }
