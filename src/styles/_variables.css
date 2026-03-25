@@ -1,0 +1,11 @@
+:root{
+    --primary-rgb: 32, 115, 169;
+    --secondary-rgb: 243, 196, 4;
+    --highlight-rgb: 66, 178, 253;
+    --soft-white: rgb(235, 235, 235);
+    --primary-color: rgb(var(--primary-rgb));
+    --secondary-color: rgb(var(--secondary-rgb));
+    --highlight-color: rgb(var(--highlight-rgb));
+    
+    font-size: 16px;
+}
