@@ -1,5 +1,5 @@
-import type {AuthService} from "../services/auth_service";
-import {AuthenticationResponse} from "../enum/authentication_responses";
+import type {AuthService} from "./services/auth_service";
+import {AuthenticationResponse} from "./enum/authentication_responses";
 import type {Session,SupabaseClient} from "@supabase/supabase-js";
 
 export class SupabaseAuthService implements AuthService {

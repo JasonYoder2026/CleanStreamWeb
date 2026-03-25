@@ -1,5 +1,6 @@
 // api/models/auth_singleton.ts
 import supabase from "../supabase-client";
-import { SupabaseAuthService } from "../models/supabase_auth_service";
+import { SupabaseAuthService } from "../supabase_auth_service";
+import type {AuthService} from "../services/auth_service";
 
-export const authenticator = new SupabaseAuthService(supabase);
+export const authenticator:AuthService = new SupabaseAuthService(supabase);

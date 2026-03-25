@@ -1,7 +1,6 @@
 import { Navigate } from "react-router-dom";
 import {type JSX, useEffect, useState} from "react";
 import { authenticator } from "../api/singleton/auth_singleton";
-import { SupabaseAuthService } from "../api/models/supabase_auth_service";
 
 interface ProtectedRouteProps {
     children: JSX.Element;
