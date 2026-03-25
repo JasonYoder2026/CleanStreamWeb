@@ -1,13 +1,18 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import '../styles/Login.css'
+import { useAuth } from "../di/container";
+import { AuthenticationResponse} from "../supabase/enum/authentication_responses";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // single error message
   const [obscure, setObscure] = useState(true);
+  const navigate = useNavigate();
+  const {login} = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Reset previous error
     setError("");
 
@@ -16,12 +21,14 @@ function Login() {
       return;
     }
 
-    // Fake login check
-    if (email !== "test@test.com" || password !== "password") {
+    // Login
+    let loginResponse:AuthenticationResponse = await login(email, password);
+    if (loginResponse === AuthenticationResponse.failure) {
       setError("Email or Password is incorrect");
-    } else {
-      alert("Logged in!");
-      setError(""); // clear error on success
+    }else if(loginResponse === AuthenticationResponse.invalidPermissions){
+      setError("Invalid Permissions. Must be an Owner or Admin!");
+    }else{
+      navigate("/home");
     }
   };
 
