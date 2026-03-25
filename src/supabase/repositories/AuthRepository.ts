@@ -1,13 +1,13 @@
 import type {AuthService} from "../../interfaces/auth_service";
 import {AuthenticationResponse} from "../enum/authentication_responses";
 import {SupabaseClient, type Session} from "@supabase/supabase-js";
-import supabase from '../client';
 
 export class SupabaseAuthRepository implements AuthService {
 
-    private client: SupabaseClient = supabase;
     private session: Session | null = null;
     private userID: string | null = null;
+
+    constructor(private client: SupabaseClient) {}
 
     async login(email: string, password: string): Promise<AuthenticationResponse> {
         let output: AuthenticationResponse = AuthenticationResponse.success;
@@ -61,11 +61,11 @@ export class SupabaseAuthRepository implements AuthService {
         return output;
     }
 
-    async isSession(): Promise<boolean> {
+    isSession = async (): Promise<boolean> => {
         return this.session != null;
-    }
+    };
 
-    getUserID(): string | null {
+    getUserID = async (): Promise<string | null> => {
         return this.userID;
     }
 }
