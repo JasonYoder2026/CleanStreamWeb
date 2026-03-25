@@ -1,7 +1,6 @@
 .content {
-    flex: 1;
     padding: 1.5rem;
     display: flex;
-    flex-direction: column;
-    align-self: start;
+    flex-direction: row;
+    height: 100%;
 }

@@ -8,9 +8,8 @@ function HomePage() {
   return (
     <div className="app-container">
       <TopBar />
-      <SideBar />
-
       <div className="content">
+        <SideBar />
         <Outlet />
       </div>
     </div>
