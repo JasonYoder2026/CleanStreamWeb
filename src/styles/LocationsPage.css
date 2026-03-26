@@ -1,0 +1,68 @@
+.locations-list{
+    border-radius: 16px;
+    font-size: 3vw;
+}
+
+.top-section{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.top-section p{
+    font-weight: bolder;
+    font-size: 2vw;
+}
+
+.sub-section{
+    display: flex;
+    align-items: center;
+    gap: .5rem
+}
+
+.top-section button{
+    width: 8vw;
+    aspect-ratio: 2/1;
+    border-color: black;
+    border-radius: 18px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.sub-section button:hover{
+    background-color: rgb(210, 210, 210);
+}
+
+.plus{
+    color: var(--primary-color);
+    size: 9vw;
+    aspect-ratio: 1;
+}
+
+.seperation-line{
+    height: 2px;
+    width: 100%;
+    background-color: black;
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
+
+.machine-description{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.machine-description p{
+    font-weight: bolder;
+    font-size: 1.5vw;
+}
+
+.machine-description button{
+    width: 6vw;
+    aspect-ratio: 2/1;
+    border-color: black;
+    border-radius: 18px;
+    background-color: transparent;
+    cursor: pointer;
+}

@@ -9,7 +9,7 @@ export class AuthRepository implements AuthService {
 
     constructor(private client: SupabaseClient) {}
 
-    async login(email: string, password: string): Promise<AuthenticationResponse> {
+    login = async (email: string, password: string): Promise<AuthenticationResponse> => {
         let output: AuthenticationResponse = AuthenticationResponse.success;
 
         const {data, error } = await this.client.auth.signInWithPassword({
