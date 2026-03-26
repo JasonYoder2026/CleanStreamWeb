@@ -1,71 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/refundsPage.css";
-
-type RefundStatus = "pending" | "approved" | "denied";
-
-interface Refund {
-  id: string;
-  customerName: string;
-  email: string;
-  machineId: string;
-  amount: number;
-  reason: string;
-  date: string;
-  status: RefundStatus;
-}
-
-const MOCK_REFUNDS: Refund[] = [
-  {
-    id: "RFD-001",
-    customerName: "Marcus Webb",
-    email: "marcus.webb@email.com",
-    machineId: "W-04",
-    amount: 4.5,
-    reason: "Machine stopped mid-cycle and did not complete wash.",
-    date: "2025-03-22",
-    status: "pending",
-  },
-  {
-    id: "RFD-002",
-    customerName: "Priya Nair",
-    email: "priya.n@email.com",
-    machineId: "D-11",
-    amount: 3.0,
-    reason: "Dryer door would not seal. Clothes remained damp.",
-    date: "2025-03-21",
-    status: "pending",
-  },
-  {
-    id: "RFD-003",
-    customerName: "Jordan Ellis",
-    email: "j.ellis@email.com",
-    machineId: "W-02",
-    amount: 4.5,
-    reason: "Payment was charged twice for the same cycle.",
-    date: "2025-03-20",
-    status: "approved",
-  },
-  {
-    id: "RFD-004",
-    customerName: "Tanya Okafor",
-    email: "tanyaok@email.com",
-    machineId: "W-07",
-    amount: 4.5,
-    reason: "App showed machine available but it was already in use.",
-    date: "2025-03-19",
-    status: "denied",
-  },
-  {
-    id: "RFD-005",
-    customerName: "Samuel Brandt",
-    email: "sbrandt@email.com",
-    machineId: "D-03",
-    amount: 3.0,
-    reason: "Machine did not start despite successful payment.",
-    date: "2025-03-18",
-    status: "pending",
-  },
-];
+import type {Refund, RefundStatus} from '../interfaces/RefundService'
+import { useRefunds } from '../di/container'
 
 const STATUS_LABEL: Record<RefundStatus, string> = {
   pending: "Pending",
@@ -86,8 +22,12 @@ function formatDate(dateStr: string) {
   });
 }
 
+const {getRefunds} = useRefunds();
+
 export default function RefundsPage() {
-  const [refunds, setRefunds] = useState<Refund[]>(MOCK_REFUNDS);
+  const [refunds, setRefunds] = useState<Refund[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState | null>(null);
   const [actionSelected, setActionSelected] = useState<"approve" | "deny" | null>(null);
   const [reason, setReason] = useState("");
@@ -111,6 +51,21 @@ export default function RefundsPage() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
+
+  useEffect(() => {
+    const fetchRefunds = async() => {
+      try {
+        const data = await getRefunds();
+        setRefunds(data);
+      } catch (err) {
+        console.log(err);
+        setError("Failed to load refunds");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRefunds();
+  }, []);
 
   const handleSubmit = async () => {
     if (!modal || !actionSelected) return;
@@ -179,13 +134,16 @@ export default function RefundsPage() {
       </div>
 
       {/* Table */}
+      {loading && <div className="loading">Loading refunds...</div>}
+      {error && <div className="error">{error}</div>}
+      { !loading && !error &&(
       <div className="refunds-table-wrapper">
         <table className="refunds-table">
           <thead>
             <tr>
               <th>ID</th>
               <th>Customer</th>
-              <th>Machine</th>
+              <th>Refund Attempts</th>
               <th>Amount</th>
               <th>Reason</th>
               <th>Date</th>
@@ -206,10 +164,9 @@ export default function RefundsPage() {
                 <td className="refund-id">{refund.id}</td>
                 <td>
                   <div className="customer-name">{refund.customerName}</div>
-                  <div className="customer-email">{refund.email}</div>
                 </td>
                 <td>
-                  <span className="machine-badge">{refund.machineId}</span>
+                  <div className="attempts">{refund.attempts}</div>
                 </td>
                 <td className="amount">${refund.amount.toFixed(2)}</td>
                 <td className="reason-cell">
@@ -235,6 +192,7 @@ export default function RefundsPage() {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Modal */}
       {modal && (
@@ -252,10 +210,6 @@ export default function RefundsPage() {
               <div className="modal-info-row">
                 <span className="info-label">Customer</span>
                 <span className="info-value">{modal.refund.customerName}</span>
-              </div>
-              <div className="modal-info-row">
-                <span className="info-label">Machine</span>
-                <span className="info-value">{modal.refund.machineId}</span>
               </div>
               <div className="modal-info-row">
                 <span className="info-label">Amount</span>
@@ -303,7 +257,7 @@ export default function RefundsPage() {
                 onClick={handleSubmit}
                 disabled={!actionSelected || submitting}
               >
-                {submitting ? "Submitting…" : "Submit Decision"}
+                {submitting ? "Submitting…" : "Submit"}
               </button>
             </div>
           </div>
