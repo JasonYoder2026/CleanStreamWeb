@@ -9,7 +9,7 @@ export class SupabaseAuthRepository implements AuthService {
     private session: Session | null = null;
     private userID: string | null = null;
 
-    async login(email: string, password: string): Promise<AuthenticationResponse> {
+    login = async (email: string, password: string): Promise<AuthenticationResponse> => {
         let output: AuthenticationResponse = AuthenticationResponse.success;
 
         const {data, error } = await this.client.auth.signInWithPassword({
@@ -61,9 +61,9 @@ export class SupabaseAuthRepository implements AuthService {
         return output;
     }
 
-    async isSession(): Promise<boolean> {
-        return this.session != null;
-    }
+    isSession = async (): Promise<boolean> => {
+    return this.session != null;
+}
 
     getUserID(): string | null {
         return this.userID;
