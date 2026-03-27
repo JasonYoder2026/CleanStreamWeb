@@ -109,6 +109,7 @@ export default function RefundsPage() {
     denied: refunds.filter((r) => r.status === "denied").length,
   };
 
+
   return (
     <div className="refunds-page">
       {/* Header */}

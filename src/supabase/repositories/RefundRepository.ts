@@ -14,6 +14,7 @@ export class RefundRepository implements RefundService {
                 date,
                 status,
                 profiles (
+                    id,
                     full_name,
                     refund_attempts
                 )
@@ -25,6 +26,7 @@ export class RefundRepository implements RefundService {
         return data.map((row: any)=> ({
             id: ("R" + row.refund_id),
             customerName: row.profiles.full_name,
+            customerId: row.profiles.id,
             amount: row.amount,
             reason: row.description,
             date: row.date,
