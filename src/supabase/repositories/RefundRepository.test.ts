@@ -1,49 +1,72 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { EdgeFunctionRepository } from './EdgeFunctionRepository';
+// src/data/repositories/RefundRepository.test.ts
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { RefundRepository } from "./RefundRepository";
 
-describe('EdgeFunctionRepository', () => {
+describe("RefundRepository", () => {
     let mockClient: SupabaseClient;
-    let repo: EdgeFunctionRepository;
-    let mockInvoke: any;
+    let repo: RefundRepository;
+    let mockFrom: any;
+    let mockSelect: any;
 
     beforeEach(() => {
-        mockInvoke = vi.fn();
+        mockSelect = vi.fn();
+        mockFrom = vi.fn(() => ({ select: mockSelect }));
         mockClient = {
-            functions: {
-                invoke: mockInvoke,
-            },
+            from: mockFrom,
         } as unknown as SupabaseClient;
 
-        repo = new EdgeFunctionRepository(mockClient);
+        repo = new RefundRepository(mockClient);
     });
 
-    it('should call the Supabase function and return data', async () => {
-        const mockData = { success: true };
-        mockInvoke.mockResolvedValue({ data: mockData });
+    it("should fetch refunds and map them correctly", async () => {
+        const mockData = [
+            {
+                refund_id: 1,
+                transaction_id: "T123",
+                amount: 50,
+                description: "Test refund",
+                date: "2026-03-27",
+                status: "pending",
+                profiles: {
+                    id: "U123",
+                    full_name: "John Doe",
+                    refund_attempts: 2,
+                },
+            },
+        ];
 
-        const result = await repo.callFunction('test-function', { foo: 'bar' });
+        mockSelect.mockResolvedValue({ data: mockData, error: null });
 
-        expect(mockInvoke).toHaveBeenCalledWith('test-function', {
-            body: JSON.stringify({ foo: 'bar' }),
-        });
-        expect(result).toEqual(mockData);
+        const result = await repo.getRefunds();
+
+        expect(mockFrom).toHaveBeenCalledWith("Refunds");
+        expect(mockSelect).toHaveBeenCalled();
+        expect(result).toEqual([
+            {
+                id: "R1",
+                customerName: "John Doe",
+                customerId: "U123",
+                transactionId: "T123",
+                amount: 50,
+                reason: "Test refund",
+                date: "2026-03-27",
+                status: "pending",
+                attempts: 2,
+            },
+        ]);
     });
 
-    it('should return null if response.data is undefined', async () => {
-        mockInvoke.mockResolvedValue({ data: undefined });
+    it("should throw an error if Supabase returns an error", async () => {
+        const mockError = new Error("Database error");
+        mockSelect.mockResolvedValue({ data: null, error: mockError });
 
-        const result = await repo.callFunction('empty-function');
-
-        expect(result).toBeNull();
+        await expect(repo.getRefunds()).rejects.toThrow("Database error");
     });
 
-    it('should return the error if the invocation throws', async () => {
-        const mockError = new Error('Function failed');
-        mockInvoke.mockRejectedValue(mockError);
+    it("should throw an error if data is null without error", async () => {
+        mockSelect.mockResolvedValue({ data: null, error: null });
 
-        const result = await repo.callFunction('failing-function');
-
-        expect(result).toBe(mockError);
+        await expect(repo.getRefunds()).rejects.toBeNull();
     });
 });
