@@ -15,14 +15,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
             const session = await isSession();
             setIsAuth(session);
         })();
-    });
+    }, []);
 
     if (isAuth === null) {
         // still checking
         return <div>Loading...</div>;
     }
 
-    if (!isAuth) {
+    if (!isAuth || isAuth == undefined) {
         return <Navigate to="/" replace />;
     }
 

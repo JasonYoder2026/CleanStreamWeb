@@ -1,15 +1,16 @@
-import type {AuthService} from "../../interfaces/auth_service";
+import type {AuthService} from "../../interfaces/AuthService";
 import {AuthenticationResponse} from "../enum/authentication_responses";
 import {SupabaseClient, type Session} from "@supabase/supabase-js";
-import supabase from '../client';
+import client from "../client";
 
-export class SupabaseAuthRepository implements AuthService {
+export class AuthRepository implements AuthService {
 
-    private client: SupabaseClient = supabase;
     private session: Session | null = null;
     private userID: string | null = null;
 
-    async login(email: string, password: string): Promise<AuthenticationResponse> {
+    constructor(private client: SupabaseClient) {}
+
+    login = async (email: string, password: string): Promise<AuthenticationResponse> => {
         let output: AuthenticationResponse = AuthenticationResponse.success;
 
         const {data, error } = await this.client.auth.signInWithPassword({
@@ -61,11 +62,37 @@ export class SupabaseAuthRepository implements AuthService {
         return output;
     }
 
-    async isSession(): Promise<boolean> {
+    isSession = async (): Promise<boolean> => {
         return this.session != null;
+    };
+
+    getUserID = async (): Promise<string | null> => {
+        return this.userID;
     }
 
-    getUserID(): string | null {
-        return this.userID;
+    restoreSession = async (): Promise<AuthenticationResponse> => {
+        try {
+            const {data, error} = await this.client.auth.getSession();
+
+            if (error || !data.session) {
+                return AuthenticationResponse.failure;
+            }
+
+            const roleResponse = await this.getRole(data.session.user.id);
+            if (roleResponse === AuthenticationResponse.invalidPermissions) {
+                return AuthenticationResponse.invalidPermissions;
+            }
+
+            this.session = data.session;
+            this.userID = data.session.user.id;
+
+            return AuthenticationResponse.success;
+        } catch {
+            return AuthenticationResponse.failure;
+        }
+    }
+
+    signOut = async (): Promise<void> => {
+        await this.client.auth.signOut();
     }
 }

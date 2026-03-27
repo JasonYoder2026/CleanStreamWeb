@@ -1,8 +1,7 @@
 import SideBar from "./SideBar";
 import TopBar from "./TopBar";
 import { Outlet } from "react-router-dom";
-import "../styles/homePage.css";
-
+import "../styles/HomePage.css";
 
 function HomePage() {
   return (
