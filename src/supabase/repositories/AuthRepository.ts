@@ -1,6 +1,7 @@
 import type {AuthService} from "../../interfaces/AuthService";
 import {AuthenticationResponse} from "../enum/authentication_responses";
 import {SupabaseClient, type Session} from "@supabase/supabase-js";
+import client from "../client";
 
 export class AuthRepository implements AuthService {
 
@@ -67,5 +68,31 @@ export class AuthRepository implements AuthService {
 
     getUserID = async (): Promise<string | null> => {
         return this.userID;
+    }
+
+    restoreSession = async (): Promise<AuthenticationResponse> => {
+        try {
+            const {data, error} = await this.client.auth.getSession();
+
+            if (error || !data.session) {
+                return AuthenticationResponse.failure;
+            }
+
+            const roleResponse = await this.getRole(data.session.user.id);
+            if (roleResponse === AuthenticationResponse.invalidPermissions) {
+                return AuthenticationResponse.invalidPermissions;
+            }
+
+            this.session = data.session;
+            this.userID = data.session.user.id;
+
+            return AuthenticationResponse.success;
+        } catch {
+            return AuthenticationResponse.failure;
+        }
+    }
+
+    signOut = async (): Promise<void> => {
+        await this.client.auth.signOut();
     }
 }
