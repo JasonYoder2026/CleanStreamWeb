@@ -4,10 +4,10 @@ import type { FunctionService } from "../../interfaces/FunctionService";
 export class EdgeFunctionRepository implements FunctionService {
     constructor(private client: SupabaseClient) { }
 
-    async callFunction<T = unknown>(
+    callFunction = async <T = unknown>(
         name: string,
         params?: any
-    ): Promise<T> {
+    ): Promise<T> => {
         try {
             const response = await this.client.functions.invoke(name, {
                 body: JSON.stringify(params),

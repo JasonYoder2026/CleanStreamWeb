@@ -9,6 +9,7 @@ export interface Refund {
     customerName: string;
     customerId: string,
     amount: number;
+    transactionId: string,
     reason: string;
     date: string;
     status: RefundStatus;

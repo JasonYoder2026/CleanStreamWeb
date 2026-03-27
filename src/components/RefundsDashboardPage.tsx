@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../styles/refundsPage.css";
 import type {Refund, RefundStatus} from '../interfaces/RefundService'
-import { useRefunds } from '../di/container'
+import { useRefunds, useFunctions } from '../di/container';
 
 const STATUS_LABEL: Record<RefundStatus, string> = {
   pending: "Pending",
@@ -23,6 +23,7 @@ function formatDate(dateStr: string) {
 }
 
 const {getRefunds} = useRefunds();
+const {callFunction} = useFunctions();
 
 export default function RefundsPage() {
   const [refunds, setRefunds] = useState<Refund[]>([]);
@@ -72,12 +73,12 @@ export default function RefundsPage() {
     setSubmitting(true);
 
     try {
-      // TODO: Replace with actual Supabase edge function call
-      // await supabase.functions.invoke('handle-refund', {
-      //   body: { refundId: modal.refund.id, action: actionSelected, reason }
-      // });
+      const {transactionId, customerId, amount} = modal.refund;
+      await callFunction(
+        actionSelected === "approve" ? "approveRefund" : "denyRefund",
+        { transactionId, customerId, amount }
+      );
 
-      await new Promise((res) => setTimeout(res, 900)); // mock latency
 
       setRefunds((prev) =>
         prev.map((r) =>
@@ -86,6 +87,7 @@ export default function RefundsPage() {
             : r
         )
       );
+
 
       showToast(
         actionSelected === "approve"

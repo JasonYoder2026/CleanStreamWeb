@@ -9,6 +9,7 @@ export class RefundRepository implements RefundService {
             .from("Refunds")
             .select(`
                 refund_id,
+                transaction_id,
                 amount,
                 description,
                 date,
@@ -27,6 +28,7 @@ export class RefundRepository implements RefundService {
             id: ("R" + row.refund_id),
             customerName: row.profiles.full_name,
             customerId: row.profiles.id,
+            transactionId: row.transaction_id,
             amount: row.amount,
             reason: row.description,
             date: row.date,
