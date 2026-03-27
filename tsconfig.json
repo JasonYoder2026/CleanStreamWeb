@@ -43,5 +43,5 @@
     "skipLibCheck": true,
     "esModuleInterop": true
   },
-  "include": ["src"],
+  "include": ["src", "tests/supabase/AuthRepository.test.ts"],
 }
