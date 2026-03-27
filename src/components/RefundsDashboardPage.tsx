@@ -76,7 +76,7 @@ export default function RefundsPage() {
       const {transactionId, customerId, amount} = modal.refund;
       await callFunction(
         actionSelected === "approve" ? "approveRefund" : "denyRefund",
-        { transactionId, customerId, amount }
+        { transactionId, customerId, amount, note: reason }
       );
 
 
