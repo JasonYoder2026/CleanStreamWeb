@@ -5,4 +5,6 @@ export interface AuthService{
     getRole(userID: string | undefined): Promise<AuthenticationResponse>;
     isSession(): Promise<boolean>;
     getUserID(): Promise<string | null>;
+    restoreSession(): Promise<AuthenticationResponse>;
+    signOut(): Promise<void>;
 }

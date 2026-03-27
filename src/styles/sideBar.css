@@ -112,3 +112,8 @@
         transform: translateX(0);
     }
 }
+
+.sign-out {
+    margin-top: auto;
+    color: red;
+}

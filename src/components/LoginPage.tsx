@@ -7,13 +7,31 @@ import { useNavigate } from "react-router-dom";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // single error message
+  const [error, setError] = useState("");
   const [obscure, setObscure] = useState(true);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
-  const {login} = useAuth();
+  const { login, restoreSession } = useAuth();
+
+  useEffect(() => {
+    const tryAutoLogin = async () => {
+      try {
+        const response = await restoreSession();
+        if (response === AuthenticationResponse.success) {
+          navigate("/home");
+        }
+      } catch (e) {
+        console.error("restoreSession failed:", e);
+      } finally {
+        setChecking(false);
+      }
+    };
+    tryAutoLogin();
+  }, []);
+
+  if (checking) return null;
 
   const handleLogin = async () => {
-    // Reset previous error
     setError("");
 
     if (email === "" || password === "") {
@@ -21,13 +39,12 @@ function Login() {
       return;
     }
 
-    // Login
-    let loginResponse:AuthenticationResponse = await login(email, password);
+    let loginResponse: AuthenticationResponse = await login(email, password);
     if (loginResponse === AuthenticationResponse.failure) {
       setError("Email or Password is incorrect");
-    }else if(loginResponse === AuthenticationResponse.invalidPermissions){
+    } else if (loginResponse === AuthenticationResponse.invalidPermissions) {
       setError("Invalid Permissions. Must be an Owner or Admin!");
-    }else{
+    } else {
       navigate("/home");
     }
   };
@@ -40,51 +57,48 @@ function Login() {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    if (error) setError(""); // clear error when user types
+    if (error) setError("");
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    if (error) setError(""); // clear error when user types
+    if (error) setError("");
   };
 
   return (
-    <div className="login-container" onKeyDown={handleKeyPress}>
-      <img src="src\assets\Logo.png" className="logo" alt="Logo" />
+      <div className="login-container" onKeyDown={handleKeyPress}>
+        <img src="src\assets\Logo.png" className="logo" alt="Logo" />
 
-      {/* Centered Error Message */}
-      {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message">{error}</div>}
 
-      {/* Email Field */}
-      <input
-        className={`input ${error ? "error" : ""}`}
-        placeholder="Email"
-        value={email}
-        onChange={handleEmailChange}
-      />
-
-      {/* Password Field */}
-      <div className="password-container">
         <input
-          className={`input password-input ${error ? "error" : ""}`}
-          type={obscure ? "password" : "text"}
-          placeholder="Password"
-          value={password}
-          onChange={handlePasswordChange}
+            className={`input ${error ? "error" : ""}`}
+            placeholder="Email"
+            value={email}
+            onChange={handleEmailChange}
         />
-        <button
-          type="button"
-          className="show-button"
-          onClick={() => setObscure(!obscure)}
-        >
-          {obscure ? "Show" : "Hide"}
+
+        <div className="password-container">
+          <input
+              className={`input password-input ${error ? "error" : ""}`}
+              type={obscure ? "password" : "text"}
+              placeholder="Password"
+              value={password}
+              onChange={handlePasswordChange}
+          />
+          <button
+              type="button"
+              className="show-button"
+              onClick={() => setObscure(!obscure)}
+          >
+            {obscure ? "Show" : "Hide"}
+          </button>
+        </div>
+
+        <button className="login-button" onClick={handleLogin}>
+          Log In
         </button>
       </div>
-
-      <button className="login-button" onClick={handleLogin}>
-        Log In
-      </button>
-    </div>
   );
 }
 

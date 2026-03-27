@@ -7,10 +7,21 @@ import {
   Landmark,
   Map,
   Settings,
+    LogOut
 } from "lucide-react";
+import { useAuth } from "../di/container";
+import { useNavigate } from "react-router-dom";  // add useNavigate here
 
 function SideBar() {
   const [showSideBar, setShowSideBar] = useState(false);
+    const { signOut } = useAuth();
+    const navigate = useNavigate();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate("/");
+    };
+
   if (showSideBar == false) {
     return (
       <div className="closed-side-bar" onClick={() => setShowSideBar(true)}>
@@ -35,6 +46,10 @@ function SideBar() {
           <Settings />
           Settings
         </Link>
+          <div className="sidebar-item sign-out" onClick={handleSignOut}>
+              <LogOut />
+              Sign Out
+          </div>
       </div>
     );
   }
