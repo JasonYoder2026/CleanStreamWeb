@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/refundsPage.css";
 import type {Refund, RefundStatus} from '../interfaces/RefundService'
 import { useRefunds, useFunctions } from '../di/container';
@@ -22,10 +22,16 @@ function formatDate(dateStr: string) {
   });
 }
 
-const {getRefunds} = useRefunds();
-const {callFunction} = useFunctions();
+type Props = {
+  refundService?: ReturnType<typeof useRefunds>;
+  functionService?: ReturnType<typeof useFunctions>;
+};
 
-export default function RefundsPage() {
+
+export default function RefundsPage({
+  refundService,
+  functionService
+}: Props) {
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +41,8 @@ export default function RefundsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [filter, setFilter] = useState<RefundStatus | "all">("all");
+  const { getRefunds } = refundService ?? useRefunds();
+  const { callFunction } = functionService ?? useFunctions();
 
   const openModal = (refund: Refund) => {
     setModal({ refund, action: null });
