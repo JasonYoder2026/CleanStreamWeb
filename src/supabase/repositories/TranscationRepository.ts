@@ -30,7 +30,8 @@ export class TransactionRepository implements TransactionService {
             .from('transactions')
             .select('*')
             .gte('created_at', startOfDay.toISOString())
-            .lte('created_at', endOfDay.toISOString());
+            .lte('created_at', endOfDay.toISOString())
+            .not('description', 'in', '("Loyalty payment on Dryer","Loyalty payment on Washer")');
 
         if (error) {
             console.error('Error fetching transactions:', error);
