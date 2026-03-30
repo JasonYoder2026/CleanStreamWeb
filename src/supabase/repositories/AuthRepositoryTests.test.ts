@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { AuthRepository } from "../../supabase/repositories/AuthRepository";
-import { AuthenticationResponse } from "../../supabase/enum/authentication_responses";
+import { AuthRepository } from "./AuthRepository";
+import { AuthenticationResponse } from "../enum/authentication_responses";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
