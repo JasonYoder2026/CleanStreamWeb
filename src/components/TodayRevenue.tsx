@@ -56,6 +56,16 @@ export default function TodayRevenue() {
         fetchRevenue();
     }, [getTodayRevenue]);
 
+    useEffect(() => {
+        if (!repository?.subscribeToTodayRevenue) return;
+
+        const unsubscribe = repository.subscribeToTodayRevenue((total) => {
+            setRevenue(total);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
     return (
         <div className="dr-card">
             <div className="dr-glow" />
