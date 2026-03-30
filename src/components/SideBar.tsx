@@ -1,58 +1,62 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
-import {
-  ArrowBigLeft,
-  ArrowBigRight,
-  Landmark,
-  Map,
-  Settings,
-    LogOut
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home } from "lucide-react";
 import { useAuth } from "../di/container";
-import { useNavigate } from "react-router-dom";  // add useNavigate here
 
 function SideBar() {
-  const [showSideBar, setShowSideBar] = useState(false);
-    const { signOut } = useAuth();
-    const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
-    const handleSignOut = async () => {
-        await signOut();
-        navigate("/");
-    };
+  const handleNav = (path: string) => {
+    navigate(path);
+    setOpen(false);
+  };
 
-  if (showSideBar == false) {
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  if (!open) {
     return (
-      <div className="closed-side-bar" onClick={() => setShowSideBar(true)}>
-        <ArrowBigRight />
-      </div>
-    );
-  } else {
-    return (
-      <div className="side-bar-container">
-        <div  className="sidebar-item" onClick={() => setShowSideBar(false)}>
-          <ArrowBigLeft />
-        </div>
-        <Link to="/home/refunds" className="sidebar-item">
-          <Landmark />
-          Refunds
-        </Link>
-        <Link to='/home/locations' className="sidebar-item">
-          <Map />
-          Locations
-        </Link>
-        <Link to='/home/settings' className="sidebar-item">
-          <Settings />
-          Settings
-        </Link>
-          <div className="sidebar-item sign-out" onClick={handleSignOut}>
-              <LogOut />
-              Sign Out
-          </div>
+      <div className="sidebar-wrapper">
+        <div className="closed-side-bar" onClick={() => setOpen(true)} />
+        <button className="sidebar-toggle" onClick={() => setOpen(true)} aria-label="Open sidebar">
+          <ChevronRight />
+        </button>
       </div>
     );
   }
+
+  return (
+    <div className="sidebar-wrapper">
+      <div className="side-bar-container">
+        <button className="sidebar-toggle" onClick={() => setOpen(false)} aria-label="Close sidebar">
+          <ChevronLeft />
+        </button>
+        <button className="sidebar-item" onClick={() => handleNav("/home")}>
+          <Home /> Dashboard
+        </button>
+        <button className="sidebar-item" onClick={() => handleNav("/home/refunds")}>
+          <Landmark /> Refunds
+        </button>
+        <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
+          <Map /> Locations
+        </button>
+        <button className="sidebar-item" onClick={() => handleNav("/home/settings")}>
+          <Settings /> Settings
+        </button>
+
+        <div className="sidebar-divider" />
+
+        <button className="sidebar-item sign-out" onClick={handleSignOut}>
+          <LogOut /> Sign Out
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default SideBar;

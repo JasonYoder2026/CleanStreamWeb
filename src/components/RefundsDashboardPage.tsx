@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/refundsPage.css";
 import type {Refund, RefundStatus} from '../interfaces/RefundService'
-import { useRefunds } from '../di/container'
+import { useRefunds, useFunctions } from '../di/container';
 
 const STATUS_LABEL: Record<RefundStatus, string> = {
   pending: "Pending",
@@ -22,9 +22,16 @@ function formatDate(dateStr: string) {
   });
 }
 
-const {getRefunds} = useRefunds();
+type Props = {
+  refundService?: ReturnType<typeof useRefunds>;
+  functionService?: ReturnType<typeof useFunctions>;
+};
 
-export default function RefundsPage() {
+
+export default function RefundsPage({
+  refundService,
+  functionService
+}: Props) {
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +41,8 @@ export default function RefundsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [filter, setFilter] = useState<RefundStatus | "all">("all");
+  const { getRefunds } = refundService ?? useRefunds();
+  const { callFunction } = functionService ?? useFunctions();
 
   const openModal = (refund: Refund) => {
     setModal({ refund, action: null });
@@ -72,12 +81,12 @@ export default function RefundsPage() {
     setSubmitting(true);
 
     try {
-      // TODO: Replace with actual Supabase edge function call
-      // await supabase.functions.invoke('handle-refund', {
-      //   body: { refundId: modal.refund.id, action: actionSelected, reason }
-      // });
+      const {transactionId, customerId, amount} = modal.refund;
+      await callFunction(
+        actionSelected === "approve" ? "approveRefund" : "denyRefund",
+        { transactionId, customerId, amount, note: reason }
+      );
 
-      await new Promise((res) => setTimeout(res, 900)); // mock latency
 
       setRefunds((prev) =>
         prev.map((r) =>
@@ -86,6 +95,7 @@ export default function RefundsPage() {
             : r
         )
       );
+
 
       showToast(
         actionSelected === "approve"
@@ -108,6 +118,7 @@ export default function RefundsPage() {
     approved: refunds.filter((r) => r.status === "approved").length,
     denied: refunds.filter((r) => r.status === "denied").length,
   };
+
 
   return (
     <div className="refunds-page">
