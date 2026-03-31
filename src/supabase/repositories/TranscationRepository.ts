@@ -103,11 +103,9 @@ export class TransactionRepository implements TransactionService {
                 return null;
             }
 
-            // Group by day
             const dailyMap = new Map<string, number>();
             let totalAmount = 0;
 
-            // Initialize all 30 days with 0
             for (let i = 0; i < 30; i++) {
                 const date = new Date();
                 date.setDate(today.getDate() - (29 - i));
@@ -115,7 +113,6 @@ export class TransactionRepository implements TransactionService {
                 dailyMap.set(dateKey!, 0);
             }
 
-            // Add actual transaction amounts
             if (data) {
                 for (const row of data) {
                     const amount = Number(row.amount);
@@ -127,7 +124,6 @@ export class TransactionRepository implements TransactionService {
                 }
             }
 
-            // Convert to array and sort by date
             const dailyArray = Array.from(dailyMap.entries())
                 .map(([date, amount]) => ({ date, amount }))
                 .sort((a, b) => a.date.localeCompare(b.date));
