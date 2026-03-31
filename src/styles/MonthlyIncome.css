@@ -4,15 +4,13 @@
     background: #ffffff;
     border: 1px solid #e3e8ef;
     border-radius: 16px;
-    padding: 28px 32px;
-    min-width: 360px;
-    max-width: 480px;
+    padding: 20px 24px;
+    width: 100%;
     position: relative;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .mi-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
@@ -50,17 +48,17 @@
 .mi-amount {
     font-family: 'Fraunces', serif;
     font-weight: 600;
-    font-size: 38px;
+    font-size: 32px;
     color: #1976d2;
     line-height: 1;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     letter-spacing: -0.02em;
 }
 
 /* Chart */
 .mi-chart {
-    height: 120px;
-    margin-bottom: 20px;
+    height: 100px;
+    margin-bottom: 16px;
     position: relative;
 }
 
