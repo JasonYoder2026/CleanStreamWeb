@@ -73,6 +73,7 @@ body {
     line-height: 1;
     margin-bottom: 20px;
     letter-spacing: -0.02em;
+    overflow: hidden;
 }
 
 .dr-amount.loading {
@@ -92,7 +93,34 @@ body {
     font-weight: 400;
 }
 
-/* Divider */
+/*Rolling Number*/
+
+.rolling-number {
+    display: inline-flex;
+    align-items: baseline;
+}
+
+.digit {
+    display: inline-block;
+}
+
+.digit.rolling {
+    animation: rollUp 0.3s ease forwards;
+}
+
+.digit-static {
+    display: inline-block;
+}
+
+@keyframes rollUp {
+    0%   { transform: translateY(0);     opacity: 1; }
+    49%  { transform: translateY(-12px); opacity: 0; }
+    50%  { transform: translateY(12px);  opacity: 0; }
+    100% { transform: translateY(0);     opacity: 1; }
+}
+
+/* Divider*/
+
 .dr-divider {
     height: 1px;
     background: #e3e8ef;
@@ -100,6 +128,7 @@ body {
 }
 
 /* Footer */
+
 .dr-footer {
     display: flex;
     align-items: center;
@@ -114,7 +143,7 @@ body {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #4ade80; /* green */
+    background: #4ade80;
     box-shadow: 0 0 6px rgba(74,222,128,0.6);
     animation: pulse 2s infinite;
 }
@@ -126,14 +155,14 @@ body {
     animation: none;
 }
 
-/* Pulse animation for green dot */
+/*Animations */
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    50%       { opacity: 0.4; }
 }
 
-/* Shimmer animation for loading amount */
 @keyframes shimmer {
-    0% { background-position: 200% 0; }
+    0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }

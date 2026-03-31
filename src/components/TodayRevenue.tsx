@@ -2,6 +2,42 @@ import { useEffect, useState } from "react";
 import { useTransactions } from "../di/container";
 import "../styles/TodayRevenue.css";
 
+function RollingDigit({ digit }: { digit: string }) {
+    const [displayDigit, setDisplayDigit] = useState(digit);
+    const [prev, setPrev] = useState(digit);
+    const [animating, setAnimating] = useState(false);
+
+    useEffect(() => {
+        if (digit !== prev) {
+            setAnimating(true);
+            const timeout = setTimeout(() => {
+                setDisplayDigit(digit);
+                setPrev(digit);
+                setAnimating(false);
+            }, 300);
+            return () => clearTimeout(timeout);
+        }
+    }, [digit]);
+
+    return (
+        <span className={`digit ${animating ? "rolling" : ""}`}>
+            {animating ? prev : displayDigit}
+        </span>
+    );
+}
+
+function RollingNumber({ value }: { value: string }) {
+    return (
+        <span className="rolling-number">
+            {value.split("").map((char, i) =>
+                /\d/.test(char)
+                    ? <RollingDigit key={i} digit={char} />
+                    : <span key={i} className="digit-static">{char}</span>
+            )}
+        </span>
+    );
+}
+
 const formatCurrency = (value: number) =>
     new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -17,9 +53,7 @@ const todayLabel = () =>
     });
 
 export default function TodayRevenue() {
-    const repository = useTransactions(); // keep the full object temporarily
-
-    // Pull out the method safely
+    const repository = useTransactions();
     const getTodayRevenue = repository?.getTodayRevenue;
 
     const [revenue, setRevenue] = useState<number | null>(null);
@@ -78,7 +112,9 @@ export default function TodayRevenue() {
             ) : error ? (
                 <div className="dr-amount error-state">Failed to load</div>
             ) : (
-                <div className="dr-amount">{formatCurrency(revenue ?? 0)}</div>
+                <div className="dr-amount">
+                    <RollingNumber value={formatCurrency(revenue ?? 0)} />
+                </div>
             )}
 
             <div className="dr-divider" />

@@ -20,25 +20,32 @@ vi.mock("../styles/TodayRevenue.css", () => ({}));
 
 const renderComponent = () => render(<TodayRevenue />);
 
+// Gets the full text content of the amount div by joining all digit spans
+const getAmountText = () => {
+    const amount = document.querySelector(".dr-amount");
+    return amount?.textContent ?? "";
+};
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe("TodayRevenue", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockSubscribeToTodayRevenue.mockReturnValue(() => {});
     });
 
     describe("loading state", () => {
 
         it("shows fetching text while loading", () => {
-            mockGetTodayRevenue.mockResolvedValue(new Promise(() => {})); // never resolves
+            mockGetTodayRevenue.mockResolvedValue(new Promise(() => {}));
             renderComponent();
 
             expect(screen.getByText("Fetching...")).toBeDefined();
         });
 
-        it("shows the Daily Revenue label", async () => {
-            mockGetTodayRevenue.mockResolvedValue(100);
+        it("shows the Daily Revenue label", () => {
+            mockGetTodayRevenue.mockResolvedValue(new Promise(() => {}));
             renderComponent();
 
             expect(screen.getByText("Daily Revenue")).toBeDefined();
@@ -53,7 +60,7 @@ describe("TodayRevenue", () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(screen.getByText("$150.50")).toBeDefined();
+                expect(getAmountText()).toBe("$150.50");
             });
         });
 
@@ -62,7 +69,7 @@ describe("TodayRevenue", () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(screen.getByText("$0.00")).toBeDefined();
+                expect(getAmountText()).toBe("$0.00");
             });
         });
 
@@ -87,7 +94,37 @@ describe("TodayRevenue", () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(screen.getByText("$12,345.67")).toBeDefined();
+                expect(getAmountText()).toBe("$12,345.67");
+            });
+        });
+
+        it("sets up subscription on mount", async () => {
+            mockGetTodayRevenue.mockResolvedValue(100);
+            renderComponent();
+
+            await waitFor(() => {
+                expect(mockSubscribeToTodayRevenue).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        it("updates revenue when subscription fires", async () => {
+            mockGetTodayRevenue.mockResolvedValue(100);
+
+            let capturedCallback: ((total: number) => void) | null = null;
+            mockSubscribeToTodayRevenue.mockImplementation((cb: (total: number) => void) => {
+                capturedCallback = cb;
+                return () => {};
+            });
+
+            renderComponent();
+
+            await waitFor(() => expect(getAmountText()).toBe("$100.00"));
+
+            // Simulate a live update coming in
+            capturedCallback!(250);
+
+            await waitFor(() => {
+                expect(getAmountText()).toBe("$250.00");
             });
         });
 
@@ -142,12 +179,6 @@ describe("TodayRevenue", () => {
         it("shows failed to load when repository method is missing", async () => {
             const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-            vi.mocked(mockGetTodayRevenue); // clear ref
-            vi.doMock("../di/container", () => ({
-                useTransactions: () => ({}), // no getTodayRevenue
-            }));
-
-            // Re-render with missing method scenario by returning null from mock
             mockGetTodayRevenue.mockImplementation(() => {
                 throw new Error("not available");
             });
