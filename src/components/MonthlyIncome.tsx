@@ -31,6 +31,12 @@ export default function MonthlyIncome() {
     const [total, setTotal] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [hoveredPoint, setHoveredPoint] = useState<{
+        x: number;
+        y: number;
+        date: string;
+        amount: number;
+    } | null>(null);
 
     useEffect(() => {
         if (!getLast30DaysRevenue) {
@@ -134,19 +140,43 @@ export default function MonthlyIncome() {
                             {dailyData.map((day, i) => {
                                 const x = (i / (dailyData.length - 1)) * 100;
                                 const y = 100 - ((day.amount - minAmount) / (maxAmount - minAmount)) * 90 - 5;
+
                                 return (
                                     <circle
                                         key={i}
                                         cx={x}
                                         cy={y}
-                                        r="1.0"
+                                        r="1.5"
                                         className="mi-point"
-                                    >
-                                        <title>{`${day.date}: ${formatCurrency(day.amount)}`}</title>
-                                    </circle>
+                                        onMouseEnter={(e) => {
+                                            const rect = e.currentTarget.ownerSVGElement!.getBoundingClientRect();
+
+                                            setHoveredPoint({
+                                                x: (x / 100) * rect.width,
+                                                y: (y / 100) * rect.height,
+                                                date: day.date,
+                                                amount: day.amount,
+                                            });
+                                        }}
+                                        onMouseLeave={() => setHoveredPoint(null)}
+                                    />
                                 );
                             })}
                         </svg>
+                        {hoveredPoint && (
+                            <div
+                                className="mi-tooltip"
+                                style={{
+                                    left: hoveredPoint.x,
+                                    top: hoveredPoint.y,
+                                }}
+                            >
+                                <div className="mi-tooltip-date">{hoveredPoint.date}</div>
+                                <div className="mi-tooltip-amount">
+                                    {formatCurrency(hoveredPoint.amount)}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </>
             )}

@@ -83,6 +83,29 @@
     vector-effect: non-scaling-stroke;
 }
 
+.mi-tooltip {
+    position: absolute;
+    transform: translate(-50%, -120%);
+    background: #0f172a;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mi-tooltip-date {
+    opacity: 0.7;
+    font-size: 11px;
+}
+
+.mi-tooltip-amount {
+    font-weight: 600;
+}
+
+
 /* Data points */
 .mi-point {
     fill: #1976d2;
