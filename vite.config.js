@@ -11,7 +11,9 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       all: true,
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['node_modules/', 'src/**/*.test.{ts,tsx}', 'src/supabase/enum/*', 'src/supabase/client.ts', 'src/interfaces/*', 'src/di/*'],
+      exclude: ['node_modules/', 'src/**/*.test.{ts,tsx}', 'src/supabase/enum/*', 'src/supabase/client.ts', 'src/interfaces/*', 'src/di/*', 
+        'src/App.tsx', 'src/global.d.ts', 'src/main.tsx', 'src/components/HomePage.tsx'
+      ],
     },
   },
 })
