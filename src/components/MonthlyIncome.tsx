@@ -139,7 +139,7 @@ export default function MonthlyIncome() {
                                         key={i}
                                         cx={x}
                                         cy={y}
-                                        r="1.5"
+                                        r="1.0"
                                         className="mi-point"
                                     >
                                         <title>{`${day.date}: ${formatCurrency(day.amount)}`}</title>
