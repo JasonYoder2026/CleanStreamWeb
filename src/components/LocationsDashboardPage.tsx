@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import "../styles/LocationsPage.css";
+import { Plus } from "lucide-react";
 import { useLocations } from "../di/container";
 import type { Location } from "../interfaces/LocationService";
 
-function LocationsDashBoard() {
+function LocationsPage() {
   const [locationData, setLocationData] = useState<Location[]>([]);
 
   useEffect(() => {
@@ -30,8 +31,26 @@ function LocationsDashBoard() {
             </option>
           ))}
         </select>
-        ...
+        <div className="sub-section">
+          <p>Add Location:</p>
+          <button name="Add location button">
+            <Plus className="plus" />
+          </button>
+        </div>
       </div>
+
+      <div className="seperation-line"></div>
+      <div className="machine-description">
+        <p>Machines:</p>
+        <div className="sub-section">
+          <button>
+            <p>Add Machine:</p>
+          </button>
+        </div>
+      </div>
+      <ul></ul>
     </div>
   );
 }
+
+export default LocationsPage;
