@@ -7,106 +7,116 @@ const mockNavigate = vi.fn();
 const mockSignOut = vi.fn();
 
 vi.mock("react-router-dom", async () => {
-    const actual = await vi.importActual<typeof import("react-router-dom")>(
-        "react-router-dom"
+  const actual =
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
     );
-    return {
-        ...actual,
-        useNavigate: () => mockNavigate,
-    };
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
 });
 
 vi.mock("../di/container", () => ({
-    useAuth: () => ({
-        signOut: mockSignOut,
-    }),
+  useAuth: () => ({
+    signOut: mockSignOut,
+  }),
 }));
 
 describe("SideBar", () => {
-    const renderComponent = () =>
-        render(
-            <MemoryRouter>
-                <SideBar />
-            </MemoryRouter>
-        );
+  const renderComponent = () =>
+    render(
+      <MemoryRouter>
+        <SideBar />
+      </MemoryRouter>,
+    );
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    it("renders closed sidebar initially", () => {
-        renderComponent();
+  it("renders closed sidebar initially", () => {
+    renderComponent();
 
-        expect(screen.getByLabelText("Open sidebar")).toBeInTheDocument();
-    });
+    expect(screen.getByLabelText("Open sidebar")).toBeInTheDocument();
+  });
 
-    it("opens sidebar when toggle is clicked", () => {
-        renderComponent();
+  it("opens sidebar when toggle is clicked", () => {
+    renderComponent();
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
 
-        expect(screen.getByLabelText("Close sidebar")).toBeInTheDocument();
-        expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    });
+    expect(screen.getByLabelText("Close sidebar")).toBeInTheDocument();
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+  });
 
-    it("navigates to dashboard and closes sidebar", () => {
-        renderComponent();
+  it("navigates to dashboard and closes sidebar", () => {
+    renderComponent();
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Dashboard"));
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Dashboard"));
 
-        expect(mockNavigate).toHaveBeenCalledWith("/home");
-    });
+    expect(mockNavigate).toHaveBeenCalledWith("/home");
+  });
 
-    it("navigates to refunds", () => {
-        renderComponent();
+  it("navigates to refunds", () => {
+    renderComponent();
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Refunds"));
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Refunds"));
 
-        expect(mockNavigate).toHaveBeenCalledWith("/home/refunds");
-    });
+    expect(mockNavigate).toHaveBeenCalledWith("/home/refunds");
+  });
 
-    it("navigates to locations", () => {
-        renderComponent();
+  it("navigates to traffic", () => {
+    renderComponent();
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Locations"));
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Traffic"));
 
-        expect(mockNavigate).toHaveBeenCalledWith("/home/locations");
-    });
+    expect(mockNavigate).toHaveBeenCalledWith("/home/traffic");
+  });
 
-    it("navigates to settings", () => {
-        renderComponent();
+  it("navigates to locations", () => {
+    renderComponent();
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Settings"));
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Locations"));
 
-        expect(mockNavigate).toHaveBeenCalledWith("/home/settings");
-    });
+    expect(mockNavigate).toHaveBeenCalledWith("/home/locations");
+  });
 
-    it("calls signOut and redirects to root", async () => {
-        mockSignOut.mockResolvedValue(undefined);
+  it("navigates to settings", () => {
+    renderComponent();
 
-        renderComponent();
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Settings"));
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Sign Out"));
+    expect(mockNavigate).toHaveBeenCalledWith("/home/settings");
+  });
 
-        expect(mockSignOut).toHaveBeenCalled();
-    });
+  it("calls signOut and redirects to root", async () => {
+    mockSignOut.mockResolvedValue(undefined);
 
-    it("redirects after signOut", async () => {
-        mockSignOut.mockResolvedValue(undefined);
+    renderComponent();
 
-        renderComponent();
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Sign Out"));
 
-        fireEvent.click(screen.getByLabelText("Open sidebar"));
-        fireEvent.click(screen.getByText("Sign Out"));
+    expect(mockSignOut).toHaveBeenCalled();
+  });
 
-        // wait for async
-        await Promise.resolve();
+  it("redirects after signOut", async () => {
+    mockSignOut.mockResolvedValue(undefined);
 
-        expect(mockNavigate).toHaveBeenCalledWith("/");
-    });
+    renderComponent();
+
+    fireEvent.click(screen.getByLabelText("Open sidebar"));
+    fireEvent.click(screen.getByText("Sign Out"));
+
+    // wait for async
+    await Promise.resolve();
+
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+  });
 });
