@@ -4,12 +4,11 @@ import { useAuth } from "../../di/container";
 
 export class LocationRepository implements LocationService {
     constructor(private client: SupabaseClient) { }
-    private locations: Location[] | null = [];
-
+    
     getLocations = async (): Promise<Location[]> => {
         const authService = useAuth()
         const Uuid = await authService.getUserID()
-
+        
         const { data: adminData, error: adminError } = await this.client
             .from("Location_to_Admin")
             .select("location_id")
@@ -30,7 +29,6 @@ export class LocationRepository implements LocationService {
             console.error(locationsError);
             throw new Error(locationsError.message);
         }
-        this.locations = locations as Location[]
         return locations as Location[];
     };
 
@@ -48,10 +46,11 @@ export class LocationRepository implements LocationService {
     return getMachines as Machine[];
 };
 
-    addMachines = async (machine: Machine): Promise<void>  => {
+    addMachines = async (machine: Machine): Promise<void|string>  => {
         const { error: addMachinesError } = await this.client
         .from("Machines")
-        .insert({Name: machine.Name, 
+        .insert({
+            Name: machine.Name, 
             Price: machine.Price, 
             Runtime: machine.Runtime, 
             Status: machine.Status, 
@@ -60,8 +59,45 @@ export class LocationRepository implements LocationService {
 
         if (addMachinesError) {
         console.error(addMachinesError);
-        throw new Error(addMachinesError.message);
+        return(addMachinesError?.message)
+        }
     }
+
+    addLocations = async (location: Location): Promise<void|string>  => {
+        const authService = useAuth()
+        const Uuid = await authService.getUserID()
+        const { data, error: addLocationsError } = await this.client
+        .from("Locations")
+        .insert({
+            Address: location.Address,
+            Name: location.Name,
+            Latitude: location.Latitude,
+            Longitude: location.Longitude,
+        })
+        .select("id")
+        .single();
+        if (addLocationsError) {
+        console.error(addLocationsError);
+        return(addLocationsError.message)
+        }
+
+        if (data != null && Uuid != null) {
+        await this.addLocationToAdmin(data.id, Uuid)
+        }
+    }
+
+    addLocationToAdmin = async (locationId:number ,uid:string): Promise<void> =>{
+        const {error: addLocationToAdminError } = await this.client
+        .from("Location_to_Admin")
+        .insert({
+            location_id: locationId,
+            user_id: uid
+        });
+
+        if (addLocationToAdminError) {
+        console.error(addLocationToAdminError);
+        throw new Error(addLocationToAdminError.message);
+        }
     }
 
 }

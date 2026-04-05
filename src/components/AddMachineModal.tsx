@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../styles/LocationPageModals.css";
 import { useLocations } from "../di/container";
 import type { Machine } from "../interfaces/LocationService";
-import { X, Check } from "lucide-react";
+import { X, Check, AlertCircle } from "lucide-react";
 
 interface LocationOption {
   id: number;
@@ -40,6 +40,7 @@ export default function AddMachineModal({
 }: AddMachineModalProps) {
   const [form, setForm] = useState<MachineFormData>(emptyForm());
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const locationService = useLocations();
 
   if (!isOpen) return null;
@@ -51,23 +52,35 @@ export default function AddMachineModal({
   const handleClose = () => {
     setForm(emptyForm());
     setIsSuccess(false);
+    setErrorMessage(null);
     onClose();
   };
 
   const handleSubmit = async () => {
-    const machine: Machine = {
-      id: 0,
-      Name: form.machineName,
-      Price: form.machinePrice,
-      Runtime: form.machineRunTime,
-      Status: "idle",
-      Location_ID: Number(form.machineLocation),
-      Machine_type: form.machineType,
-    };
-    await locationService.addMachines(machine);
-    onSuccess?.();
-    setIsSuccess(true);
-    setTimeout(handleClose, 1500);
+    setErrorMessage(null);
+    try {
+      const machine: Machine = {
+        id: 0,
+        Name: form.machineName,
+        Price: form.machinePrice,
+        Runtime: form.machineRunTime,
+        Status: "idle",
+        Location_ID: Number(form.machineLocation),
+        Machine_type: form.machineType,
+      };
+      const result = await locationService.addMachines(machine);
+      if (typeof result === "string") {
+        setErrorMessage(result);
+        return;
+      }
+      onSuccess?.();
+      setIsSuccess(true);
+      setTimeout(handleClose, 1500);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Something went wrong.",
+      );
+    }
   };
 
   if (isSuccess)
@@ -101,6 +114,13 @@ export default function AddMachineModal({
         </div>
 
         <div className="seperation-line" />
+
+        {errorMessage && (
+          <div className="error-banner">
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <div className="modal-form">
           <div className="form-group">

@@ -25,21 +25,21 @@ function LocationsPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const locations = await locationService.getLocations();
-        setLocationData(locations);
-        const firstLocation = locations[0];
-        if (firstLocation) {
-          setSelectedLocation("");
-        }
-      } catch (error) {
-        console.error("Failed to fetch locations:", error);
+  const fetchLocations = async () => {
+    try {
+      const locations = await locationService.getLocations();
+      setLocationData(locations);
+      const firstLocation = locations[0];
+      if (firstLocation) {
+        setSelectedLocation("");
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch locations:", error);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchLocations();
   }, []);
 
   const handleLocationChange = async (
@@ -134,7 +134,7 @@ function LocationsPage() {
       <AddLocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
-        // onSuccess={() => fetchMachines(selectedLocation)}
+        onSuccess={() => fetchLocations()}
       />
     </div>
   );

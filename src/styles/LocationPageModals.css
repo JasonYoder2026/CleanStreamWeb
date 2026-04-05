@@ -143,3 +143,16 @@
   justify-content: center;
   margin: 0 auto 0.75rem;
 }
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin: 0 0 4px;
+  background-color: var(--soft-white);
+  border: none;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-size: 0.875rem;
+}

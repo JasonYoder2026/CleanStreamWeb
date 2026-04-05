@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "../styles/LocationPageModals.css";
-import { useLocations } from "../di/container";
-import { X, Check } from "lucide-react";
+import { X, Check, AlertCircle } from "lucide-react";
+import { useCoordinates, useLocations } from "../di/container";
 
 const US_STATES = [
   "AL",
@@ -83,10 +83,12 @@ const emptyForm = (): LocationFormData => ({
 export default function AddLocationModal({
   isOpen,
   onClose,
-  //   onSuccess,
+  onSuccess,
 }: AddLocationModalProps) {
   const [form, setForm] = useState<LocationFormData>(emptyForm());
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const coordinateService = useCoordinates();
   const locationService = useLocations();
 
   if (!isOpen) return null;
@@ -98,22 +100,49 @@ export default function AddLocationModal({
   const handleClose = () => {
     setForm(emptyForm());
     setIsSuccess(false);
+    setErrorMessage(null);
+    onSuccess?.();
     onClose();
   };
 
   const handleSubmit = async () => {
-    // await locationService.addLocation({
-    //   Name: form.locationName,
-    //   Address: form.streetAddress,
-    //   City: form.city,
-    //   State: form.state,
-    //   ZipCode: form.zipCode,
-    //   Country: form.country,
-    // });
-    // onSuccess?.();
-    console.log(form);
-    setIsSuccess(true);
-    setTimeout(handleClose, 1500);
+    setErrorMessage(null);
+    try {
+      const coordinates = await coordinateService.getCoordinates({
+        address: form.streetAddress,
+        city: form.city,
+        state: form.state,
+        zipCode: form.zipCode,
+        country: form.country,
+      });
+
+      if (coordinates == null) {
+        setErrorMessage(
+          "Could not find coordinates for this address. Please check the address and try again.",
+        );
+        return;
+      }
+
+      const result = await locationService.addLocations({
+        id: 0,
+        Name: form.locationName,
+        Address: form.streetAddress + ", " + form.city + ", " + form.state,
+        Longitude: coordinates.lon,
+        Latitude: coordinates.lat,
+      });
+
+      if (typeof result === "string") {
+        setErrorMessage(result);
+        return;
+      }
+
+      setIsSuccess(true);
+      setTimeout(handleClose, 1500);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Something went wrong.",
+      );
+    }
   };
 
   if (isSuccess)
@@ -147,6 +176,13 @@ export default function AddLocationModal({
         </div>
 
         <div className="seperation-line" />
+
+        {errorMessage && (
+          <div className="error-banner">
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <div className="modal-form">
           <div className="form-group">
