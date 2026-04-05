@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../styles/AddMachineModal.css";
+import "../styles/LocationPageModals.css";
 import { useLocations } from "../di/container";
 import type { Machine } from "../interfaces/LocationService";
 import { X, Check } from "lucide-react";

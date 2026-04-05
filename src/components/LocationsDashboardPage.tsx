@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useLocations } from "../di/container";
 import type { Location, Machine } from "../interfaces/LocationService";
 import AddMachineModal from "./AddMachineModal";
+import AddLocationModal from "./AddLocationModal";
 
 const MACHINE_TYPES = ["Washer", "Dryer"];
 
@@ -11,7 +12,8 @@ function LocationsPage() {
   const [locationData, setLocationData] = useState<Location[]>([]);
   const [machineData, setMachineData] = useState<Machine[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const locationService = useLocations();
 
   const fetchMachines = async (locationId: string) => {
@@ -30,9 +32,7 @@ function LocationsPage() {
         setLocationData(locations);
         const firstLocation = locations[0];
         if (firstLocation) {
-          const id = firstLocation.id.toString();
-          setSelectedLocation(id);
-          await fetchMachines(id);
+          setSelectedLocation("");
         }
       } catch (error) {
         console.error("Failed to fetch locations:", error);
@@ -59,6 +59,7 @@ function LocationsPage() {
           value={selectedLocation}
           onChange={handleLocationChange}
         >
+          <option value="">Select a location</option>
           {locationData.map((location, index) => (
             <option key={index} value={location.id.toString()}>
               {location.Name}
@@ -67,7 +68,10 @@ function LocationsPage() {
         </select>
         <div className="sub-section">
           <p>Add Location:</p>
-          <button name="Add location button">
+          <button
+            name="Add location button"
+            onClick={() => setIsLocationModalOpen(true)}
+          >
             <Plus className="plus" />
           </button>
         </div>
@@ -78,7 +82,7 @@ function LocationsPage() {
       <div className="machine-description">
         <p>Machines:</p>
         <div className="sub-section">
-          <button onClick={() => setIsModalOpen(true)}>
+          <button onClick={() => setIsMachineModalOpen(true)}>
             <Plus size={15} />
             <p>Add Machine</p>
           </button>
@@ -118,14 +122,19 @@ function LocationsPage() {
       </div>
 
       <AddMachineModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isMachineModalOpen}
+        onClose={() => setIsMachineModalOpen(false)}
         onSuccess={() => fetchMachines(selectedLocation)}
         machineTypes={MACHINE_TYPES}
         locations={locationData.map((l) => ({
           id: l.id,
           name: l.Name,
         }))}
+      />
+      <AddLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        // onSuccess={() => fetchMachines(selectedLocation)}
       />
     </div>
   );
