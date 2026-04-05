@@ -35,16 +35,33 @@ export class LocationRepository implements LocationService {
     };
 
     getMachines = async (locationId: string): Promise<Machine[]> => {
-    const { data: machines, error: machinesError } = await this.client
+    const { data: getMachines, error: getMachinesError } = await this.client
         .from("Machines")
         .select("*")
         .eq("Location_ID", parseInt(locationId));
 
-    if (machinesError) {
-        console.error(machinesError);
-        throw new Error(machinesError.message);
+    if (getMachinesError) {
+        console.error(getMachinesError);
+        throw new Error(getMachinesError.message);
     }
 
-    return machines as Machine[];
+    return getMachines as Machine[];
 };
+
+    addMachines = async (machine: Machine): Promise<void>  => {
+        const { error: addMachinesError } = await this.client
+        .from("Machines")
+        .insert({Name: machine.Name, 
+            Price: machine.Price, 
+            Runtime: machine.Runtime, 
+            Status: machine.Status, 
+            Location_ID: machine.Location_ID, 
+            Machine_type: machine.Machine_type});
+
+        if (addMachinesError) {
+        console.error(addMachinesError);
+        throw new Error(addMachinesError.message);
+    }
+    }
+
 }

@@ -120,9 +120,10 @@ function LocationsPage() {
       <AddMachineModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => fetchMachines(selectedLocation)}
         machineTypes={MACHINE_TYPES}
         locations={locationData.map((l) => ({
-          id: l.id.toString(),
+          id: l.id,
           name: l.Name,
         }))}
       />

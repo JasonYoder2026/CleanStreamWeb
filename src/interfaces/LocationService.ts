@@ -1,6 +1,7 @@
 export interface LocationService {
     getLocations(): Promise<Location[]>
     getMachines(locationId: string): Promise<Machine[]>
+    addMachines(machine: Machine): Promise<void>
 }
 
 export interface Location {
@@ -15,7 +16,7 @@ export interface Machine {
   id: number;
   Name: string;
   Price: number;
-  Runtime: string;
+  Runtime: number;
   Status: string;
   Location_ID: number;
   Machine_type: string;

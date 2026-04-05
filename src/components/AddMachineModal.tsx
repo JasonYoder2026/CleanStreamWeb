@@ -1,31 +1,32 @@
 import { useState } from "react";
 import "../styles/AddMachineModal.css";
+import { useLocations } from "../di/container";
+import type { Machine } from "../interfaces/LocationService";
+import { X, Check } from "lucide-react";
 
 interface LocationOption {
-  id: string;
+  id: number;
   name: string;
 }
-
 interface MachineFormData {
   machineName: string;
-  machinePrice: string;
-  machineRunTime: string;
+  machinePrice: number;
+  machineRunTime: number;
   machineType: string;
-  machineLocation: string;
+  machineLocation: number | "";
 }
-
 interface AddMachineModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: MachineFormData) => void;
+  onSuccess?: () => void;
   machineTypes: string[];
   locations: LocationOption[];
 }
 
 const emptyForm = (): MachineFormData => ({
   machineName: "",
-  machinePrice: "",
-  machineRunTime: "",
+  machinePrice: 0,
+  machineRunTime: 0,
   machineType: "",
   machineLocation: "",
 });
@@ -33,27 +34,58 @@ const emptyForm = (): MachineFormData => ({
 export default function AddMachineModal({
   isOpen,
   onClose,
-  onSubmit,
+  onSuccess,
   machineTypes,
   locations,
 }: AddMachineModalProps) {
   const [form, setForm] = useState<MachineFormData>(emptyForm());
+  const [isSuccess, setIsSuccess] = useState(false);
+  const locationService = useLocations();
 
   if (!isOpen) return null;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  ) => setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
 
   const handleClose = () => {
     setForm(emptyForm());
+    setIsSuccess(false);
     onClose();
   };
 
-  const handleSubmit = () => {
-    onSubmit?.(form);
-    handleClose();
+  const handleSubmit = async () => {
+    const machine: Machine = {
+      id: 0,
+      Name: form.machineName,
+      Price: form.machinePrice,
+      Runtime: form.machineRunTime,
+      Status: "idle",
+      Location_ID: Number(form.machineLocation),
+      Machine_type: form.machineType,
+    };
+    await locationService.addMachines(machine);
+    onSuccess?.();
+    setIsSuccess(true);
+    setTimeout(handleClose, 1500);
   };
+
+  if (isSuccess)
+    return (
+      <div className="modal-backdrop">
+        <div className="modal-card">
+          <div className="success-state">
+            <div className="success-icon">
+              <Check strokeWidth={3} size={22} color="#fff" />
+            </div>
+            <p className="success-title">Machine Added!</p>
+            <p className="success-subtitle">
+              {form.machineName || "Machine"} has been added successfully.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div
@@ -64,14 +96,7 @@ export default function AddMachineModal({
         <div className="top-section">
           <p>Add Machine</p>
           <button onClick={handleClose} aria-label="Close modal">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M1 1l12 12M13 1L1 13"
-                stroke="#222"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            <X />
           </button>
         </div>
 
@@ -85,7 +110,6 @@ export default function AddMachineModal({
             <input
               className="form-input"
               id="machineName"
-              name="machineName"
               type="text"
               placeholder="e.g. Washer #3"
               value={form.machineName}
@@ -94,36 +118,29 @@ export default function AddMachineModal({
           </div>
 
           <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="machinePrice">
-                Price ($)
-              </label>
-              <input
-                className="form-input"
-                id="machinePrice"
-                name="machinePrice"
-                type="number"
-                min="0"
-                placeholder="0.00"
-                value={form.machinePrice}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="machineRunTime">
-                Run Time (Minutes)
-              </label>
-              <input
-                className="form-input"
-                id="machineRunTime"
-                name="machineRunTime"
-                type="number"
-                min="0"
-                placeholder="0"
-                value={form.machineRunTime}
-                onChange={handleChange}
-              />
-            </div>
+            {[
+              { id: "machinePrice", label: "Price ($)", placeholder: "0.00" },
+              {
+                id: "machineRunTime",
+                label: "Run Time (Minutes)",
+                placeholder: "0",
+              },
+            ].map(({ id, label, placeholder }) => (
+              <div className="form-group" key={id}>
+                <label className="form-label" htmlFor={id}>
+                  {label}
+                </label>
+                <input
+                  className="form-input"
+                  id={id}
+                  type="number"
+                  min="0"
+                  placeholder={placeholder}
+                  value={form[id as keyof MachineFormData]}
+                  onChange={handleChange}
+                />
+              </div>
+            ))}
           </div>
 
           <div className="form-group">
@@ -133,7 +150,6 @@ export default function AddMachineModal({
             <select
               className="form-select"
               id="machineType"
-              name="machineType"
               value={form.machineType}
               onChange={handleChange}
             >
@@ -155,7 +171,6 @@ export default function AddMachineModal({
             <select
               className="form-select"
               id="machineLocation"
-              name="machineLocation"
               value={form.machineLocation}
               onChange={handleChange}
             >
