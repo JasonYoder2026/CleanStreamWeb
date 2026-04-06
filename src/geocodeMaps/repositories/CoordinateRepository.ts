@@ -1,13 +1,12 @@
 import type { CoordinateService, Coordinates, AddressParams } from "../../interfaces/CoordinateService";
 
-// CoordinateRepository.ts
 export class CoordinateRepository implements CoordinateService {
   getCoordinates = async (address: AddressParams): Promise<Coordinates | null> => {
     const query = [address.address, address.city, address.state, address.zipCode, address.country]
       .join("+")
       .replace(/\s+/g, "+");
-
-    const url = `https://geocode.maps.co/search?q=${query}&api_key=69d2bffa6b705651191676tcw20ec1b`;
+    
+    const url = `https://geocode.maps.co/search?q=${query}&api_key=${import.meta.env.VITE_GEOCODEMAPS_KEY}`;
 
     try {
       const response = await fetch(url);
