@@ -275,8 +275,6 @@ export default function AddLocationModal({
                 onChange={handleChange}
               >
                 <option value="US">US</option>
-                <option value="CA">CA</option>
-                <option value="MX">MX</option>
               </select>
             </div>
           </div>
