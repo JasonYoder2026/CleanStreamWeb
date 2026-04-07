@@ -1,0 +1,33 @@
+.top-bar-container {
+    background-color: var(--primary-color);
+    width: 100vw;
+    height: 9vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* gap: 0.5%; */
+    background-color: var(--soft-white);
+    border-radius: 24px;
+    margin-left: 1%;
+    padding: 0.5vh;
+    height: 70%;
+    width: 20%;
+}
+
+.image-container img:first-child {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+.image-container img:last-child {
+    height: 60%;
+    width: auto;
+    object-fit: contain;
+}
