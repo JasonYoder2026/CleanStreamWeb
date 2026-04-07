@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 
 
-describe('Feature Tests', () => {
+describe('Feature Integration Tests', () => {
 
     describe("Refund Tests", () => {
 
