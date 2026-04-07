@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import "../styles/refundsPage.css";
+import "../styles/RefundsPage.css";
 import type {Refund, RefundStatus} from '../interfaces/RefundService'
 import { useRefunds, useFunctions } from '../di/container';
 
