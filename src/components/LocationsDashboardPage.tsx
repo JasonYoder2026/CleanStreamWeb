@@ -11,6 +11,7 @@ const MACHINE_TYPES = ["Washer", "Dryer"];
 function LocationsPage() {
   const [locationData, setLocationData] = useState<Location[]>([]);
   const [machineData, setMachineData] = useState<Machine[]>([]);
+  const [userRole, setUserRole] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -40,6 +41,11 @@ function LocationsPage() {
 
   useEffect(() => {
     fetchLocations();
+    const loadRole = async () => {
+      const role = await locationService.fetchUserRole();
+      setUserRole(role!);
+    };
+    loadRole();
   }, []);
 
   const handleLocationChange = async (
@@ -66,27 +72,31 @@ function LocationsPage() {
             </option>
           ))}
         </select>
-        <div className="sub-section">
-          <p>Add Location:</p>
-          <button
-            name="Add location button"
-            onClick={() => setIsLocationModalOpen(true)}
-          >
-            <Plus className="plus" />
-          </button>
-        </div>
+        {userRole == "Owner" && (
+          <div className="sub-section">
+            <p>Add Location:</p>
+            <button
+              name="Add location button"
+              onClick={() => setIsLocationModalOpen(true)}
+            >
+              <Plus className="plus" />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="seperation-line"></div>
 
       <div className="machine-description">
         <p>Machines:</p>
-        <div className="sub-section">
-          <button onClick={() => setIsMachineModalOpen(true)}>
-            <Plus size={15} />
-            <p>Add Machine</p>
-          </button>
-        </div>
+        {userRole == "Owner" && (
+          <div className="sub-section">
+            <button onClick={() => setIsMachineModalOpen(true)}>
+              <Plus size={15} />
+              <p>Add Machine</p>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="machine-table-wrapper">

@@ -1,5 +1,6 @@
 export interface LocationService {
     getLocations(): Promise<Location[]>
+    fetchUserRole(): Promise<string | null> 
     getMachines(locationId: string): Promise<Machine[]>
     addMachines(machine: Machine): Promise<void|string>
     addLocations(location:Location): Promise<void|string>

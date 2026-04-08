@@ -45,12 +45,12 @@ export class AuthRepository implements AuthService {
 
         const {data,error} = await this.client
             .from('profiles')
-            .select("Roles")
+            .select("roles")
             .eq('id', userID)
             .single();
 
         if(data != null) {
-            if (data.Roles === "Admin" || data.Roles === "Owner") {
+            if (data.roles === "Admin" || data.roles === "Owner") {
                 output = AuthenticationResponse.success;
             }else{
                 output = AuthenticationResponse.invalidPermissions;

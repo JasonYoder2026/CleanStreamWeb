@@ -100,4 +100,20 @@ export class LocationRepository implements LocationService {
         }
     }
 
+    fetchUserRole = async (): Promise<string | null> => {
+        const authService = useAuth()
+        const userId = await authService.getUserID();
+        const {data,error} = await this.client
+              .from('profiles')
+              .select("roles")
+              .eq('id', userId)
+              .single();
+  
+          if(data != null) {
+              return data.roles.toString()
+          }else{
+            return null
+          }
+      }
+
 }
