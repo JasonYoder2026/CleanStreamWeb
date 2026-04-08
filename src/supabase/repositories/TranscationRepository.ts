@@ -27,10 +27,6 @@ export class TransactionRepository implements TransactionService {
             today.getDate(),
             23, 59, 59, 999
         );
-
-        console.log("Start:", startOfDay.toISOString());
-        console.log("End:", endOfDay.toISOString());
-
         const { data, error } = await this.client
             .from('transactions')
             .select('*')
