@@ -94,13 +94,11 @@ describe("LocationRepository", () => {
         it("returns locations for the authenticated user", async () => {
             const { client, from, inFn } = createMockClient();
 
-            // First call: Location_to_Admin
             from.mockReturnValueOnce({
                 select: vi.fn().mockReturnThis(),
                 eq: vi.fn().mockResolvedValue({ data: mockLocationIds, error: null }),
             });
 
-            // Second call: Locations
             from.mockReturnValueOnce({
                 select: vi.fn().mockReturnThis(),
                 in: inFn.mockResolvedValue({ data: mockLocations, error: null }),
@@ -274,7 +272,6 @@ describe("LocationRepository", () => {
         it("returns undefined on successful location insert", async () => {
             const { client, from, insertFn, single } = createMockClient();
 
-            // Insert location → returns new id
             from.mockReturnValueOnce({
                 insert: vi.fn().mockReturnValue({
                     select: vi.fn().mockReturnValue({
@@ -283,7 +280,6 @@ describe("LocationRepository", () => {
                 }),
             });
 
-            // Insert Location_to_Admin
             from.mockReturnValueOnce({
                 insert: insertFn.mockResolvedValue({ error: null }),
             });
@@ -350,7 +346,6 @@ describe("LocationRepository", () => {
             const repo = new LocationRepository(client);
             await repo.addLocations(mockNewLocation);
 
-            // Only one `from` call should happen (no Location_to_Admin)
             expect(from).toHaveBeenCalledTimes(1);
         });
     });
