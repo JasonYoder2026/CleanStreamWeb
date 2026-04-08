@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import supabase from "../supabase/client";
+import {getSupabaseClient} from "../supabase/client";
 import "../styles/LocationsPage.css";
 import { Plus } from "lucide-react";
 
@@ -22,7 +22,7 @@ function LocationsDashBoard() {
     const Uuid = "bea49d86-0630-44a3-a6de-c192518215aa";
 
     // Get location IDs for this admin
-    const { data: adminData, error: adminError } = await supabase
+    const { data: adminData, error: adminError } = await getSupabaseClient()
       .from("Location_to_Admin")
       .select("location_id")
       .eq("user_id", Uuid);
@@ -35,7 +35,7 @@ function LocationsDashBoard() {
     const locationIDs = adminData.map((row) => row.location_id);
 
     //Fetch location names using their IDs
-    const { data: locations, error: locationsError } = await supabase
+    const { data: locations, error: locationsError } = await getSupabaseClient()
       .from("Locations")
       .select("*")
       .in("id", locationIDs);
