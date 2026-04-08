@@ -1,0 +1,188 @@
+/* Monthly Income Card */
+.mi-card {
+    font-family: 'DM Mono', monospace;
+    background: #ffffff;
+    border: 1px solid #e3e8ef;
+    border-radius: 16px;
+    padding: 20px 24px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* Subtle blue glow behind card */
+.mi-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(25, 118, 210, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Label */
+.mi-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7a8a9a;
+    margin-bottom: 6px;
+}
+
+/* Date */
+.mi-date {
+    font-size: 11px;
+    color: #9aa7b5;
+    margin-bottom: 20px;
+    letter-spacing: 0.04em;
+}
+
+/* Amount */
+.mi-amount {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 32px;
+    color: #1976d2;
+    line-height: 1;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+}
+
+/* Chart */
+.mi-chart {
+    height: 100px;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.mi-chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Area fill under the line */
+.mi-area {
+    fill: url(#mi-gradient);
+    opacity: 0.2;
+}
+
+/* Line path */
+.mi-line {
+    fill: none;
+    stroke: #1976d2;
+    stroke-width: 0.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.mi-tooltip {
+    position: absolute;
+    transform: translate(-50%, -120%);
+    background: #0f172a;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mi-tooltip-date {
+    opacity: 0.7;
+    font-size: 11px;
+}
+
+.mi-tooltip-amount {
+    font-weight: 600;
+}
+
+
+/* Data points */
+.mi-point {
+    fill: #1976d2;
+    stroke: #ffffff;
+    stroke-width: 0.5;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    transition: r 0.2s ease;
+}
+
+.mi-point:hover {
+    r: 2.5;
+    fill: #1565c0;
+}
+
+/* Loading state for chart */
+.mi-chart-loading {
+    height: 120px;
+    background: linear-gradient(90deg, #e3e8ef 25%, #f4f7fb 50%, #e3e8ef 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+/* Error state */
+.mi-error-state {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #f87171;
+    font-weight: 400;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Divider */
+.mi-divider {
+    height: 1px;
+    background: #e3e8ef;
+    margin-bottom: 16px;
+}
+
+/* Footer */
+.mi-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #7a8a9a;
+    letter-spacing: 0.06em;
+}
+
+/* Status dot */
+.mi-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1976d2;
+    box-shadow: 0 0 6px rgba(25, 118, 210, 0.6);
+}
+
+/* Error dot */
+.mi-dot.error-dot {
+    background: #f87171;
+    box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
