@@ -1,5 +1,6 @@
 import TodayRevenue from "../components/TodayRevenue";
 import MonthlyIncome from "../components/MonthlyIncome";
+import TrafficWidget from "../components/TrafficWidget";
 import "../styles/DashboardPage.css";
 
 function DashBoard() {
@@ -22,6 +23,7 @@ function DashBoard() {
       <div className="dashboard-grid">
         <TodayRevenue />
         <MonthlyIncome />
+        <TrafficWidget />
       </div>
     </div>
   );

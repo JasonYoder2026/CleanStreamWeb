@@ -3,9 +3,8 @@
   background: #ffffff;
   border: 1px solid #e3e8ef;
   border-radius: 16px;
-  padding: 28px 32px;
-  min-width: 240px;
-  max-width: 320px;
+  padding: 20px 24px;
+  width: 100%;
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
