@@ -22,12 +22,11 @@ body {
     background: #ffffff;
     border: 1px solid #e3e8ef;
     border-radius: 16px;
-    padding: 28px 32px;
-    min-width: 240px;
-    max-width: 320px;
+    padding: 20px 24px;
+    width: 100%;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -68,7 +67,7 @@ body {
 .dr-amount {
     font-family: 'Fraunces', serif;
     font-weight: 600;
-    font-size: 42px;
+    font-size: 32px;
     color: #1976d2;
     line-height: 1;
     margin-bottom: 20px;
