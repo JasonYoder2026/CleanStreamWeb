@@ -1,99 +1,129 @@
-// tests/refund.integration.test.ts
-import { describe, it, expect, beforeAll } from "vitest";
-import supabase from "../supabase/client"; // normal anon client for DB ops
-import { useRefunds, useFunctions } from "../di/container";
-import { supabaseAdmin, seedTestUsers } from "./adminClient";
+// tests/refundsPage.ui.test.tsx
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import RefundsPage from "../components/RefundsDashboardPage";
 
-/**
- * Seed a transaction for a given user
- */
-async function seedTestTransaction(userId: string) {
-    const transaction = {
-        id: 455,
-        user_id: userId,
-        amount: "10.0",
-        description: "Loyalty Card",
-        created_at: new Date().toISOString(),
-        type: "Laundry",
-        requested_refund: true,
-    };
+describe("RefundsPage UI (Integration with mocks)", () => {
+    it("approves a refund and updates the correct row", async () => {
+        const user = userEvent.setup();
 
-    const { data: existing, error: selectError } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("id", transaction.id)
-        .single();
+        const mockRefund = {
+            id: 1,
+            transactionId: 130,
+            customerId: "acf8e5f3-03f5-4e2a-a120-fcd10ca64e1a",
+            customerName: "John Doe",
+            attempts: 1,
+            amount: 2,
+            reason: "test",
+            date: new Date().toISOString(),
+            status: "pending" as const,
+        };
 
-    if (selectError && selectError.code !== "PGRST116") throw selectError;
+        const getRefunds = vi.fn().mockResolvedValue([mockRefund]);
+        const callFunction = vi.fn().mockResolvedValue({});
 
-    if (!existing) {
-        const { error: insertError } = await supabase.from("transactions").insert([transaction]);
-        if (insertError) throw insertError;
-    }
+        render(
+            <RefundsPage
+                refundService={{ getRefunds }}
+                functionService={{ callFunction }}
+            />
+        );
 
-    return transaction;
-}
+        // 🔹 Find the correct row
+        const row = await screen.findByText("John Doe");
+        const tableRow = row.closest("tr")!;
+        const rowUtils = within(tableRow);
 
-/**
- * Seed a pending refund for the transaction
- */
-async function seedPendingRefund(transactionId: number) {
-    const { data: existing } = await supabase
-        .from("refunds")
-        .select("*")
-        .eq("transactionId", transactionId)
-        .single();
+        // 🔹 Check initial status (scoped)
+        expect(rowUtils.getByText("Pending")).toBeInTheDocument();
 
-    if (!existing) {
-        const { error: insertError } = await supabase.from("refunds").insert([
-            {
-                transactionId,
-                status: "pending",
-                note: "Seeded for integration test",
-            },
-        ]);
+        // 🔹 Open modal
+        await user.click(rowUtils.getByRole("button", { name: /respond/i }));
 
-        if (insertError) throw insertError;
-    }
-}
+        // 🔹 Scope to the .modal div to avoid matching filter pills
+        const modalEl = document.querySelector(".modal") as HTMLElement;
+        const modalUtils = within(modalEl);
 
-/**
- * Seed everything: auth users, transaction, refund
- */
-async function seedTestData() {
-    const { alice } = await seedTestUsers(); // ✅ uses admin client
-    const transaction = await seedTestTransaction(alice.id); // table insert via anon client
-    await seedPendingRefund(transaction.id);
-}
+        // 🔹 Click approve
+        await user.click(modalUtils.getByRole("button", { name: /approve/i }));
 
-describe("Refund Integration Tests (Real DB, Direct)", () => {
-    beforeAll(async () => {
-        await seedTestData();
-    });
+        // 🔹 Submit
+        await user.click(modalUtils.getByRole("button", { name: /submit/i }));
 
-    it("approves a pending refund and verifies DB changes", async () => {
-        const refundRepo = useRefunds();
-        const { callFunction } = useFunctions();
-
-        // 🔹 Get all refunds
-        const refunds = await refundRepo.getRefunds();
-        const pending = refunds.find((r) => r.status === "pending");
-        expect(pending, "No pending refund available in the test database").toBeDefined();
-        if (!pending) return;
-
-        // 🔹 Approve the refund using the Edge Function
-        await callFunction("approveRefund", {
-            transactionId: pending.transactionId,
-            customerId: pending.customerId,
-            amount: pending.amount,
-            note: "Integration test approval",
+        // 🔹 Verify backend call
+        await waitFor(() => {
+            expect(callFunction).toHaveBeenCalledWith("approveRefund", {
+                transactionId: 130,
+                customerId: "acf8e5f3-03f5-4e2a-a120-fcd10ca64e1a",
+                amount: 2,
+                note: "",
+            });
         });
 
-        // 🔹 Verify the refund status is updated
-        const updatedRefunds = await refundRepo.getRefunds();
-        const updated = updatedRefunds.find((r) => r.id === pending.id);
+        // 🔹 Verify ONLY this row updates
+        await waitFor(() => {
+            expect(rowUtils.getByText("Approved")).toBeInTheDocument();
+        });
 
-        expect(updated).toBeDefined();
-        expect(updated!.status).toBe("approved");
+        // 🔹 Toast appears — scoped to .toast to avoid matching filter pill + status badge
+        await waitFor(() => {
+            const toastEl = document.querySelector(".toast") as HTMLElement;
+            expect(toastEl).toBeInTheDocument();
+            expect(toastEl).toHaveTextContent(/approved/i);
+        });
+    });
+
+    it("denies a refund and updates the correct row", async () => {
+        const user = userEvent.setup();
+
+        const mockRefund = {
+            id: 2,
+            transactionId: 200,
+            customerId: "user-2",
+            customerName: "Jane Smith",
+            attempts: 2,
+            amount: 5,
+            reason: "another test",
+            date: new Date().toISOString(),
+            status: "pending" as const,
+        };
+
+        const getRefunds = vi.fn().mockResolvedValue([mockRefund]);
+        const callFunction = vi.fn().mockResolvedValue({});
+
+        render(
+            <RefundsPage
+                refundService={{ getRefunds }}
+                functionService={{ callFunction }}
+            />
+        );
+
+        const row = await screen.findByText("Jane Smith");
+        const tableRow = row.closest("tr")!;
+        const rowUtils = within(tableRow);
+
+        expect(rowUtils.getByText("Pending")).toBeInTheDocument();
+
+        await user.click(rowUtils.getByRole("button", { name: /respond/i }));
+
+        const modalEl = document.querySelector(".modal") as HTMLElement;
+        const modalUtils = within(modalEl);
+
+        await user.click(modalUtils.getByRole("button", { name: /deny/i }));
+        await user.click(modalUtils.getByRole("button", { name: /submit/i }));
+
+        await waitFor(() => {
+            expect(callFunction).toHaveBeenCalledWith("denyRefund", {
+                transactionId: 200,
+                customerId: "user-2",
+                amount: 5,
+                note: "",
+            });
+        });
+
+        await waitFor(() => {
+            expect(rowUtils.getByText("Denied")).toBeInTheDocument();
+        });
     });
 });
