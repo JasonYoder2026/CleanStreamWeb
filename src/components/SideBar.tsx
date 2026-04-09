@@ -9,7 +9,6 @@ import {
   Settings,
   LogOut,
   Home,
-  Activity,
 } from "lucide-react";
 import { useAuth } from "../di/container";
 
@@ -55,12 +54,6 @@ function SideBar() {
         </button>
         <button className="sidebar-item" onClick={() => handleNav("/home")}>
           <Home /> Dashboard
-        </button>
-        <button
-          className="sidebar-item"
-          onClick={() => handleNav("/home/traffic")}
-        >
-          <Activity /> Traffic
         </button>
         <button
           className="sidebar-item"

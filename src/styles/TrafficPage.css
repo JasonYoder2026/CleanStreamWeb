@@ -5,7 +5,7 @@
   border-radius: 16px;
   padding: 28px 32px;
   min-width: 240px;
-  max-width: 320px;
+  max-width: 380px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -27,7 +27,7 @@
   height: 160px;
   background: radial-gradient(
     circle,
-    rgba(74, 222, 128, 0.15) 0%,
+    rgba(31, 160, 130, 0.14) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -44,7 +44,7 @@
 .tw-date {
   font-size: 11px;
   color: #9aa7b5;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   letter-spacing: 0.04em;
 }
 
@@ -52,7 +52,7 @@
   font-family: "Fraunces", serif;
   font-weight: 600;
   font-size: 34px;
-  color: #1976d2;
+  color: #0d9488;
   line-height: 1.05;
   margin-bottom: 8px;
   letter-spacing: -0.02em;
@@ -64,8 +64,7 @@
   background-size: 200% 100%;
   animation: tw-shimmer 1.4s infinite;
   border-radius: 6px;
-  width: 70%;
-  height: 48px;
+  width: 80%;
 }
 
 .tw-amount.error-state {
@@ -73,6 +72,12 @@
   font-size: 13px;
   color: #f87171;
   font-weight: 400;
+}
+
+.tw-revenue {
+  font-size: 14px;
+  color: #155e75;
+  margin-bottom: 4px;
 }
 
 .tw-trend-note {
@@ -88,26 +93,24 @@
 
 .tw-chart {
   width: 100%;
-  height: 160px;
+  height: 88px;
   display: block;
 }
 
-.tw-axis-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  color: #7a8a9a;
-  margin-top: -28px;
+.tw-area-path {
+  fill: url(#trafficArea);
 }
 
-.tw-bar {
-  fill: #1976d2;
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
+.tw-line-path {
+  fill: none;
+  stroke: #0f766e;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.tw-bar:hover {
-  opacity: 1;
+.tw-point-dot {
+  fill: #0f766e;
 }
 
 .tw-divider {
@@ -129,8 +132,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #4ade80;
-  box-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
+  background: #14b8a6;
+  box-shadow: 0 0 6px rgba(20, 184, 166, 0.6);
   animation: tw-pulse 2s infinite;
 }
 

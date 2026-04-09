@@ -1,12 +1,30 @@
 import TodayRevenue from "../components/TodayRevenue";
+import TrafficWidget from "../components/TrafficWidget";
+import "../styles/DashboardPage.css";
 
 function DashBoard() {
-    return (
-        <div>
-            <h1>Dashboard</h1>
-            <TodayRevenue/>
-        </div>
-    )
+  const getCurrentDate = () => {
+    return new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  return (
+    <div className="dashboard-page">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Dashboard</h1>
+        <p className="dashboard-subtitle">{getCurrentDate()}</p>
+      </div>
+
+      <div className="dashboard-grid">
+        <TodayRevenue />
+        <TrafficWidget />
+      </div>
+    </div>
+  );
 }
 
 export default DashBoard;

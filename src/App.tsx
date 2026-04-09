@@ -1,7 +1,6 @@
 import "./styles/App.css";
 import LoginPage from "./components/LoginPage";
 import HomePage from "./components/HomePage";
-import TrafficPage from "./components/TrafficDashboardPage";
 import RefundsPage from "./components/RefundsDashboardPage";
 import LocationsPage from "./components/LocationsDashboardPage";
 

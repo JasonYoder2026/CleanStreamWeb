@@ -68,15 +68,6 @@ describe("SideBar", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/home/refunds");
   });
 
-  it("navigates to traffic", () => {
-    renderComponent();
-
-    fireEvent.click(screen.getByLabelText("Open sidebar"));
-    fireEvent.click(screen.getByText("Traffic"));
-
-    expect(mockNavigate).toHaveBeenCalledWith("/home/traffic");
-  });
-
   it("navigates to locations", () => {
     renderComponent();
 

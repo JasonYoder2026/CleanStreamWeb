@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TrafficDashboardPage from "./TrafficDashboardPage";
+import TrafficWidget from "./TrafficWidget";
 
 const mockGetTrafficDashboardSeed = vi.fn();
 
@@ -10,12 +10,12 @@ vi.mock("../di/container", () => ({
   }),
 }));
 
-function isoForCurrentMonth(day: number) {
+function isoForCurrentMonth(day: number, hour = 12) {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), day).toISOString();
+  return new Date(now.getFullYear(), now.getMonth(), day, hour).toISOString();
 }
 
-describe("TrafficDashboardPage", () => {
+describe("TrafficWidget", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -27,48 +27,37 @@ describe("TrafficDashboardPage", () => {
         { id: 2, name: "North Plaza" },
       ],
       events: [
-        { occurredAt: isoForCurrentMonth(3), locationId: 1, amount: 120 },
-        { occurredAt: isoForCurrentMonth(8), locationId: 2, amount: 180 },
+        { occurredAt: isoForCurrentMonth(3, 9), locationId: 1, amount: 120 },
+        { occurredAt: isoForCurrentMonth(8, 9), locationId: 1, amount: 180 },
+        { occurredAt: isoForCurrentMonth(8, 17), locationId: 2, amount: 180 },
       ],
     });
 
-    render(<TrafficDashboardPage />);
+    render(<TrafficWidget />);
 
-    expect(screen.getByText("Loading traffic...")).toBeInTheDocument();
+    expect(document.querySelector(".tw-amount.loading")).not.toBeNull();
 
     await waitFor(() => {
-      expect(screen.getByText("Locations available: 2")).toBeInTheDocument();
+      expect(screen.getByText("Live · Last 30 days")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Money earned")).toBeInTheDocument();
-    expect(screen.getByText("$300")).toBeInTheDocument();
+    expect(screen.getByText("Traffic By Hour")).toBeInTheDocument();
+    expect(screen.getByText("3 Transactions")).toBeInTheDocument();
+    expect(screen.getByText(/Peak time:/)).toBeInTheDocument();
   });
 
-  it("filters totals when location selection changes", async () => {
+  it("shows query failed when service throws", async () => {
     mockGetTrafficDashboardSeed.mockResolvedValue({
-      managedLocations: [
-        { id: 1, name: "Main Street" },
-        { id: 2, name: "North Plaza" },
-      ],
-      events: [
-        { occurredAt: isoForCurrentMonth(3), locationId: 1, amount: 120 },
-        { occurredAt: isoForCurrentMonth(8), locationId: 2, amount: 180 },
-      ],
+      managedLocations: [],
+      events: [],
     });
+    mockGetTrafficDashboardSeed.mockRejectedValueOnce(new Error("boom"));
 
-    render(<TrafficDashboardPage />);
+    render(<TrafficWidget />);
 
     await waitFor(() => {
-      expect(screen.getByText("$300")).toBeInTheDocument();
-    });
-
-    const selects = screen.getAllByRole("combobox");
-    const locationSelect = selects[1];
-
-    fireEvent.change(locationSelect, { target: { value: "1" } });
-
-    await waitFor(() => {
-      expect(screen.getByText("$120")).toBeInTheDocument();
+      expect(screen.getByText("Failed to load")).toBeInTheDocument();
+      expect(screen.getByText("Query failed")).toBeInTheDocument();
     });
   });
 });
