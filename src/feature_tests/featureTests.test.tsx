@@ -1,8 +1,16 @@
-// tests/refundsPage.ui.test.tsx
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RefundsPage from "../components/RefundsDashboardPage";
+import TodayRevenue from "../components/TodayRevenue";
+
+vi.mock("../di/container", () => ({
+    useTransactions: vi.fn(),
+    useRefunds: vi.fn(),
+    useFunctions: vi.fn(),
+}));
+
+import { useTransactions } from "../di/container";
 
 describe("RefundsPage UI (Integration with mocks)", () => {
     it("approves a refund and updates the correct row", async () => {
@@ -30,28 +38,20 @@ describe("RefundsPage UI (Integration with mocks)", () => {
             />
         );
 
-        // 🔹 Find the correct row
         const row = await screen.findByText("John Doe");
         const tableRow = row.closest("tr")!;
         const rowUtils = within(tableRow);
 
-        // 🔹 Check initial status (scoped)
         expect(rowUtils.getByText("Pending")).toBeInTheDocument();
 
-        // 🔹 Open modal
         await user.click(rowUtils.getByRole("button", { name: /respond/i }));
 
-        // 🔹 Scope to the .modal div to avoid matching filter pills
         const modalEl = document.querySelector(".modal") as HTMLElement;
         const modalUtils = within(modalEl);
 
-        // 🔹 Click approve
         await user.click(modalUtils.getByRole("button", { name: /approve/i }));
-
-        // 🔹 Submit
         await user.click(modalUtils.getByRole("button", { name: /submit/i }));
 
-        // 🔹 Verify backend call
         await waitFor(() => {
             expect(callFunction).toHaveBeenCalledWith("approveRefund", {
                 transactionId: 130,
@@ -61,12 +61,10 @@ describe("RefundsPage UI (Integration with mocks)", () => {
             });
         });
 
-        // 🔹 Verify ONLY this row updates
         await waitFor(() => {
             expect(rowUtils.getByText("Approved")).toBeInTheDocument();
         });
 
-        // 🔹 Toast appears — scoped to .toast to avoid matching filter pill + status badge
         await waitFor(() => {
             const toastEl = document.querySelector(".toast") as HTMLElement;
             expect(toastEl).toBeInTheDocument();
@@ -125,5 +123,107 @@ describe("RefundsPage UI (Integration with mocks)", () => {
         await waitFor(() => {
             expect(rowUtils.getByText("Denied")).toBeInTheDocument();
         });
+    });
+});
+
+describe("TodayRevenue UI", () => {
+    let consoleErrorSpy: any;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
+    const getRevenueEl = () =>
+        document.querySelector(".dr-amount") as HTMLElement;
+
+    it("displays revenue when fetch succeeds", async () => {
+        vi.mocked(useTransactions).mockReturnValue({
+            getTodayRevenue: vi.fn().mockResolvedValue(123.45),
+            subscribeToTodayRevenue: vi.fn().mockReturnValue(() => {}),
+        } as any);
+
+        render(<TodayRevenue />);
+
+        expect(document.querySelector(".dr-amount.loading")).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(getRevenueEl()).toHaveTextContent("$123.45");
+        });
+    });
+
+    it("displays error state when fetch returns null", async () => {
+        vi.mocked(useTransactions).mockReturnValue({
+            getTodayRevenue: vi.fn().mockResolvedValue(null),
+            subscribeToTodayRevenue: vi.fn().mockReturnValue(() => {}),
+        } as any);
+
+        render(<TodayRevenue />);
+
+        await waitFor(() => {
+            expect(screen.getByText("Failed to load")).toBeInTheDocument();
+        });
+    });
+
+    it("displays error state when fetch throws", async () => {
+        vi.mocked(useTransactions).mockReturnValue({
+            getTodayRevenue: vi.fn().mockRejectedValue(new Error("Network error")),
+            subscribeToTodayRevenue: vi.fn().mockReturnValue(() => {}),
+        } as any);
+
+        render(<TodayRevenue />);
+
+        await waitFor(() => {
+            expect(screen.getByText("Failed to load")).toBeInTheDocument();
+        });
+    });
+
+    it("updates revenue when subscription fires", async () => {
+        let capturedOnUpdate: (total: number) => void;
+
+        vi.mocked(useTransactions).mockReturnValue({
+            getTodayRevenue: vi.fn().mockResolvedValue(50.0),
+            subscribeToTodayRevenue: vi.fn().mockImplementation((onUpdate) => {
+                capturedOnUpdate = onUpdate;
+                return () => {};
+            }),
+        } as any);
+
+        render(<TodayRevenue />);
+
+        await waitFor(() => {
+            expect(getRevenueEl()).toHaveTextContent("$50.00");
+        });
+
+        await act(async () => {
+            capturedOnUpdate!(200.0);
+        });
+
+        await waitFor(() => {
+            expect(getRevenueEl()).toHaveTextContent("$200.00");
+        });
+    });
+
+    it("calls unsubscribe on unmount", async () => {
+        const unsubscribe = vi.fn();
+
+        vi.mocked(useTransactions).mockReturnValue({
+            getTodayRevenue: vi.fn().mockResolvedValue(0),
+            subscribeToTodayRevenue: vi.fn().mockReturnValue(unsubscribe),
+        } as any);
+
+        const { unmount } = render(<TodayRevenue />);
+
+        await waitFor(() => {
+            expect(getRevenueEl()).toHaveTextContent("$0.00");
+        });
+
+        unmount();
+
+        expect(unsubscribe).toHaveBeenCalledOnce();
     });
 });
