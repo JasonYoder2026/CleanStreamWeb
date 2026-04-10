@@ -1,0 +1,159 @@
+.tw-card {
+  font-family: "DM Mono", monospace;
+  background: #ffffff;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  padding: 20px 24px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tw-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.tw-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(
+    circle,
+    rgba(74, 222, 128, 0.15) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.tw-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7a8a9a;
+  margin-bottom: 6px;
+}
+
+.tw-date {
+  font-size: 11px;
+  color: #9aa7b5;
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+
+.tw-amount {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 34px;
+  color: #1976d2;
+  line-height: 1.05;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.tw-amount.loading {
+  color: transparent;
+  background: linear-gradient(90deg, #e3e8ef 25%, #f4f7fb 50%, #e3e8ef 75%);
+  background-size: 200% 100%;
+  animation: tw-shimmer 1.4s infinite;
+  border-radius: 6px;
+  width: 70%;
+  height: 48px;
+}
+
+.tw-amount.error-state {
+  font-family: "DM Mono", monospace;
+  font-size: 13px;
+  color: #f87171;
+  font-weight: 400;
+}
+
+.tw-trend-note {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.tw-chart-wrap {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.tw-chart {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+.tw-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #7a8a9a;
+  margin-top: -28px;
+}
+
+.tw-bar {
+  fill: #1976d2;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.tw-bar:hover {
+  opacity: 1;
+}
+
+.tw-divider {
+  height: 1px;
+  background: #e3e8ef;
+  margin-bottom: 12px;
+}
+
+.tw-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #7a8a9a;
+  letter-spacing: 0.06em;
+}
+
+.tw-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
+  animation: tw-pulse 2s infinite;
+}
+
+.tw-dot.error-dot {
+  background: #f87171;
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+  animation: none;
+}
+
+@keyframes tw-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes tw-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
