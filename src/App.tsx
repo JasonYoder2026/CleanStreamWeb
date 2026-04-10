@@ -7,6 +7,7 @@ import LocationsPage from "./components/LocationsDashboardPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import DashboardPage from "./components/DashboardPage";
+import EmployeePage from "./components/EmployeeDashboardPage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route index element={<div><DashboardPage/></div>} />
           <Route path="refunds" element={<RefundsPage />} />
           <Route path="locations" element={<LocationsPage />} />
+          <Route path="employees" element={<EmployeePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

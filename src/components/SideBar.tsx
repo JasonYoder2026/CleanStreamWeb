@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
-import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home } from "lucide-react";
+import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home, PersonStanding } from "lucide-react";
 import { useAuth } from "../di/container";
 
 function SideBar() {
@@ -44,6 +44,9 @@ function SideBar() {
         </button>
         <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
           <Map /> Locations
+        </button>
+        <button className="sidebar-item" onClick={() => handleNav("/home/employees")}>
+          <PersonStanding /> Employees
         </button>
         <button className="sidebar-item" onClick={() => handleNav("/home/settings")}>
           <Settings /> Settings
