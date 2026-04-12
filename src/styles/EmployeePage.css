@@ -1,0 +1,77 @@
+.sub-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.add-employee {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border: none;
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.15s;
+}
+
+.add-employee:hover {
+    background-color: var(--highlight-color);
+}
+
+.employee-table-wrapper {
+    background: #fff;
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(var(--primary-rgb), 0.08);
+    margin-top: 2%;
+}
+
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.employee-table thead {
+    background: rgba(var(--primary-rgb), 0.05);
+    border-bottom: 1px solid rgba(var(--primary-rgb), 0.15);
+}
+
+.employee-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary-color);
+}
+
+.employee-table tbody tr {
+    border-bottom: 1px solid rgba(var(--primary-rgb), 0.08);
+    transition: background 0.12s;
+}
+
+.employee-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.employee-table tbody tr:hover {
+    background: rgba(var(--highlight-rgb), 0.05);
+}
+
+.employee-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+}
+
+.employee-name {
+    font-weight: 600;
+}
