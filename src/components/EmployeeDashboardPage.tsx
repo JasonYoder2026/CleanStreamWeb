@@ -12,15 +12,16 @@ function EmployeePage() {
   const locationService = useLocations();
 
   useEffect(() => {
-    const test = async () => {
-      const ls = await locationService.getLocations();
-      const locationIDs = ls.map((location) => location.id);
-      const js = await employeeService.fetchEmployees(locationIDs);
-      setEmployeeList(js);
-    };
-    test();
+    getEmployees();
     console.log(employeeList);
   }, []);
+
+  const getEmployees = async () => {
+    const locations = await locationService.getLocations();
+    const locationIDs = locations.map((location) => location.id);
+    const employees = await employeeService.fetchEmployees(locationIDs);
+    setEmployeeList(employees);
+  };
 
   return (
     <div>
@@ -40,15 +41,32 @@ function EmployeePage() {
             <tr>
               <th>Name</th>
               <th>Email</th>
-              <th>Location</th>
+              <th>Location ID</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            {employeeList.length === 0 && (
+              <tr>
+                <td colSpan={4} className="machine-empty-row">
+                  No employees at this time.
+                </td>
+              </tr>
+            )}
+            {employeeList.map((employee, index) => (
+              <tr key={index} className="machine-row">
+                <td className="machine-name">{employee.name}</td>
+                <td>
+                  <span>{employee.email}</span>
+                </td>
+                <td>{employee.locationID}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
       <AddEmployeeModal
         onClose={() => setIsEmployeeModalOpen(false)}
-        onSuccess={() => console.log("do stuff")}
+        onSuccess={() => getEmployees()}
         isOpen={isEmployeeModalOpen}
       />
     </div>
