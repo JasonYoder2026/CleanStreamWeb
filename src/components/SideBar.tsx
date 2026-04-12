@@ -1,13 +1,20 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
 import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home, PersonStanding } from "lucide-react";
-import { useAuth } from "../di/container";
+import { useAuth, useLocations } from "../di/container";
 
 function SideBar() {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
+  const locationService = useLocations();
   const navigate = useNavigate();
+  const [UserRole, setUserRole] = useState("");
+
+  const displayEmployeePage = async () => {
+    const role = await locationService.fetchUserRole();
+    setUserRole(role!);
+  };
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -20,6 +27,7 @@ function SideBar() {
   };
 
   if (!open) {
+    displayEmployeePage();
     return (
       <div className="sidebar-wrapper">
         <div className="closed-side-bar" onClick={() => setOpen(true)} />
@@ -45,9 +53,11 @@ function SideBar() {
         <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
           <Map /> Locations
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/employees")}>
-          <PersonStanding /> Employees
-        </button>
+        {UserRole === "Owner" && (
+          <button className="sidebar-item" onClick={() => handleNav("/home/employees")}>
+            <PersonStanding /> Employees
+          </button>
+        )}
         <button className="sidebar-item" onClick={() => handleNav("/home/settings")}>
           <Settings /> Settings
         </button>
