@@ -22,6 +22,7 @@ export class EmployeeRepository implements EmployeeService {
 
     assignAdminLocation = async (form: AdminForm): Promise<void> => {
         const userID = await this.changeUserRole(form.email)
+        if(userID === "") throw new Error("Could not find that user")
         const { error: assignError } = await this.client
             .from("Location_to_Admin")
             .insert({ location_id: form.locationID, user_id: userID })
