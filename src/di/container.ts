@@ -10,7 +10,7 @@ import { LocationRepository } from "../supabase/repositories/LocationRepository"
 import type { CoordinateService } from "../interfaces/CoordinateService";
 import { CoordinateRepository } from "../geocodeMaps/repositories/CoordinateRepository";
 import { TransactionRepository } from "../supabase/repositories/TranscationRepository";
-import { EmployeeRepository } from "../supabase/repositories/EmplyeeRepository";
+import { EmployeeRepository } from "../supabase/repositories/EmployeeRepository";
 import type { EmployeeService } from "../interfaces/EmployeeService";
 
 const authRepository: AuthService = new AuthRepository(supabase);

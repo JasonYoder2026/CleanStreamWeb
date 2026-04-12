@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import "../styles/LocationPageModals.css";
+import { X, Check, AlertCircle } from "lucide-react";
 import { useLocations, useEmployee } from "../di/container";
 import type { Location } from "../interfaces/LocationService";
-import { X, Check, AlertCircle } from "lucide-react";
+import "../styles/LocationPageModals.css";
 
 interface EmployeeFormData {
   employeeEmail: string;
   locationID: number;
 }
+
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,26 +26,32 @@ export default function AddEmployeeModal({
   onSuccess,
 }: AddEmployeeModalProps) {
   const [form, setForm] = useState<EmployeeFormData>(emptyForm());
+  const [locations, setLocations] = useState<Location[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [locations, setLocations] = useState<Location[]>([]);
+
   const locationService = useLocations();
   const employeeService = useEmployee();
 
   useEffect(() => {
-  const fetchLocations = async () => {
-    const locationList = await locationService.getLocations();
-    setLocations(locationList);
-    setForm((prev) => ({ ...prev, locationID: locationList[0]?.id ?? 0 }));
-  };
-  fetchLocations();
-}, []);
+    if (!isOpen) return;
+
+    const fetchLocations = async () => {
+      const locationList = await locationService.getLocations();
+      setLocations(locationList);
+      setForm((prev) => ({ ...prev, locationID: locationList[0]?.id ?? 0 }));
+    };
+
+    fetchLocations();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
 
   const handleClose = () => {
     setForm(emptyForm());
@@ -56,7 +63,10 @@ export default function AddEmployeeModal({
   const handleSubmit = async () => {
     setErrorMessage(null);
     try {
-      employeeService.assignAdminLocation({email: form.employeeEmail, locationID: form.locationID})
+      await employeeService.assignAdminLocation({
+        email: form.employeeEmail,
+        locationID: form.locationID,
+      });
       onSuccess?.();
       setIsSuccess(true);
       setTimeout(handleClose, 1500);
@@ -67,7 +77,7 @@ export default function AddEmployeeModal({
     }
   };
 
-  if (isSuccess)
+  if (isSuccess) {
     return (
       <div className="modal-backdrop">
         <div className="modal-card">
@@ -83,6 +93,7 @@ export default function AddEmployeeModal({
         </div>
       </div>
     );
+  }
 
   return (
     <div
