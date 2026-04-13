@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
 import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home, PersonStanding } from "lucide-react";
@@ -9,12 +9,11 @@ function SideBar() {
   const { signOut } = useAuth();
   const locationService = useLocations();
   const navigate = useNavigate();
-  const [UserRole, setUserRole] = useState("");
+  const [userRole, setUserRole] = useState("");
 
-  const displayEmployeePage = async () => {
-    const role = await locationService.fetchUserRole();
-    setUserRole(role!);
-  };
+  useEffect(() => {
+    locationService.fetchUserRole().then((role) => setUserRole(role ?? ""));
+  }, []);
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -27,7 +26,6 @@ function SideBar() {
   };
 
   if (!open) {
-    displayEmployeePage();
     return (
       <div className="sidebar-wrapper">
         <div className="closed-side-bar" onClick={() => setOpen(true)} />
@@ -53,7 +51,7 @@ function SideBar() {
         <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
           <Map /> Locations
         </button>
-        {UserRole === "Owner" && (
+        {userRole === "Owner" && (
           <button className="sidebar-item" onClick={() => handleNav("/home/employees")}>
             <PersonStanding /> Employees
           </button>

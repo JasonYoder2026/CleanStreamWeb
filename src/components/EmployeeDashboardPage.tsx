@@ -13,7 +13,6 @@ function EmployeePage() {
 
   useEffect(() => {
     getEmployees();
-    console.log(employeeList);
   }, []);
 
   const getEmployees = async () => {
@@ -26,10 +25,7 @@ function EmployeePage() {
   return (
     <div>
       <div className="sub-section">
-        <button
-          className="add-employee"
-          onClick={() => setIsEmployeeModalOpen(true)}
-        >
+        <button className="add-employee" onClick={() => setIsEmployeeModalOpen(true)}>
           <Plus size={15} />
           <p>Add Employee</p>
         </button>
@@ -64,11 +60,7 @@ function EmployeePage() {
           </tbody>
         </table>
       </div>
-      <AddEmployeeModal
-        onClose={() => setIsEmployeeModalOpen(false)}
-        onSuccess={() => getEmployees()}
-        isOpen={isEmployeeModalOpen}
-      />
+      <AddEmployeeModal onClose={() => setIsEmployeeModalOpen(false)} onSuccess={() => getEmployees()} isOpen={isEmployeeModalOpen} />
     </div>
   );
 }
