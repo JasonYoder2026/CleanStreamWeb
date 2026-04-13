@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {getSupabaseClient} from "../supabase/client";
 import "../styles/LocationsPage.css";
 import { Plus } from "lucide-react";
 import { useLocations } from "../di/container";
