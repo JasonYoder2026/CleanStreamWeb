@@ -21,8 +21,11 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Clear npm cache
+        run: npm cache clean --force
+
       - name: Install deps
-        run: npm install
+        run: npm ci
 
       - name: Run tests with coverage
         run: npm run test:coverage
