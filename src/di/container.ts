@@ -1,7 +1,5 @@
 import { AuthRepository } from "../supabase/repositories/AuthRepository";
 import type { AuthService } from "../interfaces/AuthService";
-import supabase from '../supabase/client';
-import type {AuthService} from "../interfaces/AuthService";
 import { getSupabaseClient } from '../supabase/client';
 import { RefundRepository } from "../supabase/repositories/RefundRepository";
 import type { RefundService } from "../interfaces/RefundService";
@@ -15,9 +13,8 @@ import { TransactionRepository } from "../supabase/repositories/TranscationRepos
 import { EmployeeRepository } from "../supabase/repositories/EmployeeRepository";
 import type { EmployeeService } from "../interfaces/EmployeeService";
 
-const authRepository: AuthService = new AuthRepository(supabase);
 const supabase = getSupabaseClient();
-const authRepository:AuthService = new AuthRepository(supabase);
+const authRepository: AuthService = new AuthRepository(supabase);
 const refundRepository: RefundService = new RefundRepository(supabase);
 const functionRepository: FunctionService = new EdgeFunctionRepository(supabase);
 const locationRepository: LocationService = new LocationRepository(supabase);
