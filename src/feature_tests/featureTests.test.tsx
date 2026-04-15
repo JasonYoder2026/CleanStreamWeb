@@ -8,7 +8,6 @@ import LocationsPage from "../components/LocationsDashboardPage";
 import AddLocationModal from "../components/AddLocationModal";
 import AddMachineModal from "../components/AddMachineModal";
 
-// Single unified mock — must include every export used across all test suites
 vi.mock("../di/container", () => ({
     useTransactions: vi.fn(),
     useRefunds: vi.fn(),
@@ -270,8 +269,6 @@ describe("MonthlyIncome UI", () => {
     const getChartEl = () =>
         document.querySelector(".mi-chart") as HTMLElement;
 
-    // --- happy path ---
-
     it("shows loading state initially", async () => {
         vi.mocked(useTransactions).mockReturnValue({
             getLast30DaysRevenue: vi.fn().mockReturnValue(new Promise(() => {})),
@@ -348,7 +345,6 @@ describe("MonthlyIncome UI", () => {
         });
     });
 
-    // --- error states ---
 
     it("displays error state when fetch returns null", async () => {
         vi.mocked(useTransactions).mockReturnValue({
@@ -495,10 +491,6 @@ describe("MonthlyIncome UI", () => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Locations Dashboard Integration Tests
-// ─────────────────────────────────────────────────────────────────────────────
-
 const mockLocations = [
     { id: 1, Name: "Downtown Laundromat", Address: "123 Main St, Chicago, IL", Latitude: 41.8827, Longitude: -87.6233 },
     { id: 2, Name: "Uptown Wash", Address: "456 Oak Ave, Chicago, IL", Latitude: 41.9742, Longitude: -87.6575 },
@@ -509,15 +501,18 @@ const mockMachines = [
     { id: 2, Name: "Dryer #1", Machine_type: "Dryer", Status: "running", Price: 1.75, Runtime: 45, Location_ID: 1 },
 ];
 
-// The "Add Location" button uses a `name` HTML attribute (not aria-label),
-// so getByRole's name filter won't match it. Use a direct DOM query instead.
 const getAddLocationBtn = () =>
     document.querySelector('button[name="Add location button"]') as HTMLElement;
 
-// The "Add Machine" button has no aria-label and contains a <p> inside it.
-// Scope to .machine-description to avoid colliding with the modal title text.
 const getAddMachineBtn = () =>
     document.querySelector(".machine-description button") as HTMLElement;
+
+// Returns the modal card element.
+const getModalCard = () =>
+    document.querySelector(".modal-card") as HTMLElement;
+
+const getModalTitle = () =>
+    document.querySelector(".modal-card .top-section p") as HTMLElement;
 
 describe("LocationsPage UI (Integration with mocks)", () => {
     let consoleErrorSpy: any;
@@ -633,9 +628,10 @@ describe("LocationsPage UI (Integration with mocks)", () => {
 
         await user.click(getAddMachineBtn());
 
-        const modalCard = document.querySelector(".modal-card") as HTMLElement;
-        expect(modalCard).toBeInTheDocument();
-        expect(within(modalCard).getByText("Add Machine")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(getModalCard()).toBeInTheDocument();
+            expect(getModalTitle()).toHaveTextContent("Add Machine");
+        });
     });
 
     it("opens the Add Location modal when the page button is clicked", async () => {
@@ -649,9 +645,10 @@ describe("LocationsPage UI (Integration with mocks)", () => {
 
         await user.click(getAddLocationBtn());
 
-        const modalCard = document.querySelector(".modal-card") as HTMLElement;
-        expect(modalCard).toBeInTheDocument();
-        expect(within(modalCard).getByText("Add Location")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(getModalCard()).toBeInTheDocument();
+            expect(getModalTitle()).toHaveTextContent("Add Location");
+        });
     });
 
     it("logs an error when getLocations fails", async () => {
@@ -690,10 +687,6 @@ describe("LocationsPage UI (Integration with mocks)", () => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AddLocationModal Integration Tests
-// ─────────────────────────────────────────────────────────────────────────────
-
 describe("AddLocationModal UI (Integration with mocks)", () => {
     const defaultCoordinates = { lat: 41.8827, lon: -87.6233 };
 
@@ -713,13 +706,20 @@ describe("AddLocationModal UI (Integration with mocks)", () => {
         } as any);
     };
 
-    const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
+    const getSubmitBtn = () =>
+        document.querySelector(".modal-card .btn-submit") as HTMLElement;
+
+    const fillForm = async (user: ReturnType<typeof userEvent.setup>) => {
         await user.type(screen.getByLabelText(/location name/i), "My Laundromat");
         await user.type(screen.getByLabelText(/street address/i), "123 Main St");
         await user.type(screen.getByLabelText(/city/i), "Chicago");
         await user.selectOptions(screen.getByLabelText(/state/i), "IL");
         await user.type(screen.getByLabelText(/zip code/i), "60601");
-        await user.click(screen.getByRole("button", { name: /add location/i }));
+    };
+
+    const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
+        await fillForm(user);
+        await user.click(getSubmitBtn());
     };
 
     it("renders all form fields when open", () => {
@@ -738,7 +738,7 @@ describe("AddLocationModal UI (Integration with mocks)", () => {
         setupServices();
         render(<AddLocationModal isOpen={false} onClose={vi.fn()} />);
 
-        expect(screen.queryByText("Add Location")).toBeNull();
+        expect(document.querySelector(".modal-card")).toBeNull();
     });
 
     it("shows success state after a valid submission", async () => {
@@ -822,7 +822,7 @@ describe("AddLocationModal UI (Integration with mocks)", () => {
             expect(screen.getByText("First attempt failed")).toBeInTheDocument();
         });
 
-        await user.click(screen.getByRole("button", { name: /add location/i }));
+        await user.click(getSubmitBtn());
         await waitFor(() => {
             expect(screen.queryByText("First attempt failed")).toBeNull();
         });
@@ -865,10 +865,6 @@ describe("AddLocationModal UI (Integration with mocks)", () => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AddMachineModal Integration Tests
-// ─────────────────────────────────────────────────────────────────────────────
-
 describe("AddMachineModal UI (Integration with mocks)", () => {
     const defaultLocations = [
         { id: 1, name: "Downtown Laundromat" },
@@ -887,8 +883,9 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         } as any);
     };
 
-    // Scope all modal queries to .modal-card to avoid collisions with page text
     const getModal = () => document.querySelector(".modal-card") as HTMLElement;
+    const getSubmitBtn = () =>
+        document.querySelector(".modal-card .btn-submit") as HTMLElement;
 
     const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
         const modal = getModal();
@@ -899,7 +896,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         await user.type(within(modal).getByLabelText(/run time/i), "30");
         await user.selectOptions(within(modal).getByLabelText(/machine type/i), "Washer");
         await user.selectOptions(within(modal).getByLabelText(/location/i), "1");
-        await user.click(within(modal).getByRole("button", { name: /add machine/i }));
+        await user.click(getSubmitBtn());
     };
 
     it("renders all form fields when open", () => {
