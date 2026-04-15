@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
-import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home } from "lucide-react";
-import { useAuth } from "../di/container";
+import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home, PersonStanding } from "lucide-react";
+import { useAuth, useLocations } from "../di/container";
 
 function SideBar() {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
+  const locationService = useLocations();
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    locationService.fetchUserRole().then((role) => setUserRole(role ?? ""));
+  }, []);
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -45,6 +51,11 @@ function SideBar() {
         <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
           <Map /> Locations
         </button>
+        {userRole === "Owner" && (
+          <button className="sidebar-item" onClick={() => handleNav("/home/employees")}>
+            <PersonStanding /> Employees
+          </button>
+        )}
         <button className="sidebar-item" onClick={() => handleNav("/home/settings")}>
           <Settings /> Settings
         </button>
