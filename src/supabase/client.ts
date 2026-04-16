@@ -1,8 +1,12 @@
-import { createClient, SupabaseClient} from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_ANON_KEY;
+export const getSupabaseClient = (): SupabaseClient => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_ANON_KEY;
 
-const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
+    if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Missing Supabase env vars");
+    }
 
-export default supabase;
+    return createClient(supabaseUrl, supabaseKey);
+};
