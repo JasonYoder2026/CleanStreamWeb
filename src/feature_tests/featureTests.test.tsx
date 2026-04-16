@@ -7,6 +7,8 @@ import MonthlyIncome from "../components/MonthlyIncome";
 import LocationsPage from "../components/LocationsDashboardPage";
 import AddLocationModal from "../components/AddLocationModal";
 import AddMachineModal from "../components/AddMachineModal";
+import EmployeePage from "../components/EmployeeDashboardPage";
+import { useEmployee } from "../di/container";
 
 vi.mock("../di/container", () => ({
     useTransactions: vi.fn(),
@@ -14,6 +16,7 @@ vi.mock("../di/container", () => ({
     useFunctions: vi.fn(),
     useCoordinates: vi.fn(),
     useLocations: vi.fn(),
+    useEmployee: vi.fn(),
 }));
 
 vi.mock("../supabase/client", () => ({
@@ -1131,5 +1134,106 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         );
 
         expect(within(getModal()).getByLabelText<HTMLInputElement>(/machine name/i).value).toBe("");
+    });
+});
+
+describe("EmployeePage UI (Integration with mocks)", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    const mockLocations = [
+        { id: 1, Name: "Location A" },
+        { id: 2, Name: "Location B" },
+    ];
+
+    const mockEmployees = [
+        { name: "John Doe", email: "john@test.com", locationID: 1 },
+        { name: "Jane Smith", email: "jane@test.com", locationID: 2 },
+    ];
+
+    const setupServices = ({
+                               employees = mockEmployees,
+                               locations = mockLocations,
+                           } = {}) => {
+        vi.mocked(useLocations).mockReturnValue({
+            getLocations: vi.fn().mockResolvedValue(locations),
+        } as any);
+
+        vi.mocked(useEmployee).mockReturnValue({
+            fetchEmployees: vi.fn().mockResolvedValue(employees),
+            assignAdminLocation: vi.fn().mockResolvedValue({}),
+        } as any);
+    };
+
+    const openAddEmployeeModal = async (user: ReturnType<typeof userEvent.setup>) => {
+        await act(async () => {
+            await user.click(screen.getByRole("button", { name: /add employee/i }));
+        });
+    };
+
+    const fillEmployeeForm = async (modalUtils: any, user: ReturnType<typeof userEvent.setup>) => {
+        await act(async () => {
+            await user.type(modalUtils.getByLabelText(/employee email/i), "new@test.com");
+            await user.selectOptions(modalUtils.getByLabelText(/location/i), "1");
+        });
+    };
+
+    const submitEmployeeForm = async (modalUtils: any, user: ReturnType<typeof userEvent.setup>) => {
+        await act(async () => {
+            await user.click(modalUtils.getByRole("button", { name: /add employee/i }));
+        });
+    };
+
+    it("opens Add Employee modal when button is clicked", async () => {
+        const user = userEvent.setup();
+        setupServices();
+
+        render(<EmployeePage />);
+
+        await openAddEmployeeModal(user);
+
+        await waitFor(() => {
+            expect(screen.getAllByText("Add Employee").length).toBeGreaterThan(0);
+        });
+    });
+
+    it("refreshes employee list after successful add", async () => {
+        const user = userEvent.setup();
+
+        const fetchEmployees = vi.fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce(mockEmployees);
+
+        vi.mocked(useLocations).mockReturnValue({
+            getLocations: vi.fn().mockResolvedValue(mockLocations),
+        } as any);
+
+        vi.mocked(useEmployee).mockReturnValue({
+            fetchEmployees,
+            assignAdminLocation: vi.fn().mockResolvedValue({}),
+        } as any);
+
+        render(<EmployeePage />);
+
+        await waitFor(() => {
+            expect(screen.getByText("No employees at this time.")).toBeInTheDocument();
+        });
+
+        await openAddEmployeeModal(user);
+
+        const modal = document.querySelector(".modal-card") as HTMLElement;
+        const modalUtils = within(modal);
+
+        await fillEmployeeForm(modalUtils, user);
+        await submitEmployeeForm(modalUtils, user);
+
+        await waitFor(() => {
+            expect(fetchEmployees).toHaveBeenCalledTimes(2);
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("John Doe")).toBeInTheDocument();
+        });
     });
 });
