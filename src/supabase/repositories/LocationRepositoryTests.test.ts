@@ -25,8 +25,8 @@ const mockLocations: Location[] = [
 ];
 
 const mockMachines: Machine[] = [
-    { id: 1, Name: "Washer 1", Price: 2.5, Runtime: 30, Status: "Available", Location_ID: 1, Machine_type: "Washer" },
-    { id: 2, Name: "Dryer 1", Price: 1.75, Runtime: 45, Status: "In Use", Location_ID: 1, Machine_type: "Dryer" },
+    { id: 1, Name: "Washer 1", Price: 2.5, Runtime: 30, Status: "Available", Location_ID: 1, Machine_type: "Washer", Weight_kg: 15 },
+    { id: 2, Name: "Dryer 1", Price: 1.75, Runtime: 45, Status: "In Use", Location_ID: 1, Machine_type: "Dryer", Weight_kg: 25 },
 ];
 
 const mockNewMachine: Machine = {
@@ -37,6 +37,7 @@ const mockNewMachine: Machine = {
     Status: "Available",
     Location_ID: 1,
     Machine_type: "Washer",
+    Weight_kg: 12
 };
 
 const mockNewLocation: Location = {
@@ -64,7 +65,6 @@ const createMockClient = () => {
         single,
     };
 
-    // Re-bind so chaining works: each method returns the same chainBase
     selectFn.mockReturnValue(chainBase);
     eqFn.mockReturnValue(chainBase);
     inFn.mockReturnValue(chainBase);
@@ -156,6 +156,45 @@ describe("LocationRepository", () => {
 
             expect(mockGetUserID).toHaveBeenCalledTimes(1);
         });
+
+        // ── NEW: verify the extracted IDs are passed to .in() ─────────────────
+        it("passes extracted location IDs to the Locations query", async () => {
+            const { client, from, inFn } = createMockClient();
+
+            from.mockReturnValueOnce({
+                select: vi.fn().mockReturnThis(),
+                eq: vi.fn().mockResolvedValue({ data: mockLocationIds, error: null }),
+            });
+
+            from.mockReturnValueOnce({
+                select: vi.fn().mockReturnThis(),
+                in: inFn.mockResolvedValue({ data: mockLocations, error: null }),
+            });
+
+            const repo = new LocationRepository(client);
+            await repo.getLocations();
+
+            expect(inFn).toHaveBeenCalledWith("id", [1, 2]);
+        });
+
+        it("returns an empty array when the user has no linked locations", async () => {
+            const { client, from, inFn } = createMockClient();
+
+            from.mockReturnValueOnce({
+                select: vi.fn().mockReturnThis(),
+                eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+            });
+
+            from.mockReturnValueOnce({
+                select: vi.fn().mockReturnThis(),
+                in: inFn.mockResolvedValue({ data: [], error: null }),
+            });
+
+            const repo = new LocationRepository(client);
+            const result = await repo.getLocations();
+
+            expect(result).toEqual([]);
+        });
     });
 
     // ── getMachines ───────────────────────────────────────────────────────────
@@ -245,7 +284,7 @@ describe("LocationRepository", () => {
             expect(result).toBe("Insert failed");
         });
 
-        it("inserts correct machine fields", async () => {
+        it("inserts correct machine fields including Weight_kg", async () => {
             const { client, from, insertFn } = createMockClient();
 
             from.mockReturnValueOnce({
@@ -262,6 +301,7 @@ describe("LocationRepository", () => {
                 Status: mockNewMachine.Status,
                 Location_ID: mockNewMachine.Location_ID,
                 Machine_type: mockNewMachine.Machine_type,
+                Weight_kg: mockNewMachine.Weight_kg,
             });
         });
     });
@@ -328,7 +368,6 @@ describe("LocationRepository", () => {
             const repo = new LocationRepository(client);
             await repo.addLocations(mockNewLocation);
 
-            // The second `from` call is Location_to_Admin insert
             expect(from).toHaveBeenCalledWith("Location_to_Admin");
         });
 
@@ -347,6 +386,30 @@ describe("LocationRepository", () => {
             await repo.addLocations(mockNewLocation);
 
             expect(from).toHaveBeenCalledTimes(1);
+        });
+
+        it("inserts correct location fields", async () => {
+            const { client, from, single } = createMockClient();
+            const insertFn = vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                    single: single.mockResolvedValue({ data: { id: 10 }, error: null }),
+                }),
+            });
+
+            from.mockReturnValueOnce({ insert: insertFn });
+            from.mockReturnValueOnce({
+                insert: vi.fn().mockResolvedValue({ error: null }),
+            });
+
+            const repo = new LocationRepository(client);
+            await repo.addLocations(mockNewLocation);
+
+            expect(insertFn).toHaveBeenCalledWith({
+                Address: mockNewLocation.Address,
+                Name: mockNewLocation.Name,
+                Latitude: mockNewLocation.Latitude,
+                Longitude: mockNewLocation.Longitude,
+            });
         });
     });
 
@@ -378,6 +441,17 @@ describe("LocationRepository", () => {
 
             const repo = new LocationRepository(client);
             await expect(repo.addLocationToAdmin(42, mockUuid)).rejects.toThrow("Admin link error");
+        });
+
+        it("resolves without error on successful insert", async () => {
+            const { client, from, insertFn } = createMockClient();
+
+            from.mockReturnValueOnce({
+                insert: insertFn.mockResolvedValue({ error: null }),
+            });
+
+            const repo = new LocationRepository(client);
+            await expect(repo.addLocationToAdmin(1, mockUuid)).resolves.toBeUndefined();
         });
     });
 
@@ -447,6 +521,58 @@ describe("LocationRepository", () => {
             await repo.fetchUserRole();
 
             expect(mockGetUserID).toHaveBeenCalledTimes(1);
+        });
+
+        it("coerces a non-string role value to a string", async () => {
+            const { client, from, single } = createMockClient();
+
+            from.mockReturnValueOnce({
+                select: vi.fn().mockReturnThis(),
+                eq: vi.fn().mockReturnValue({
+                    single: single.mockResolvedValue({ data: { roles: 2 }, error: null }),
+                }),
+            });
+
+            const repo = new LocationRepository(client);
+            const result = await repo.fetchUserRole();
+
+            expect(typeof result).toBe("string");
+            expect(result).toBe("2");
+        });
+    });
+
+    // ── calculatePrice ────────────────────────────────────────────────────────
+
+    describe("calculatePrice", () => {
+        it("converts kg to lbs and rounds down to the nearest 10", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            expect(repo.calculatePrice(10)).toBe(20);
+        });
+
+        it("returns 0 for very small weights that fall below 10 lbs", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            expect(repo.calculatePrice(1)).toBe(0);
+        });
+
+        it("handles weights that convert to exactly a multiple of 10 lbs", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            const kgForExactly10lbs = 10 / 2.20462;
+            expect(repo.calculatePrice(kgForExactly10lbs)).toBe(10);
+        });
+
+        it("floors correctly when lbs is just under a boundary", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            expect(repo.calculatePrice(22)).toBe(40);
+        });
+
+        it("handles 0 kg input", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            expect(repo.calculatePrice(0)).toBe(0);
+        });
+
+        it("scales correctly for large weights", () => {
+            const repo = new LocationRepository({} as SupabaseClient);
+            expect(repo.calculatePrice(100)).toBe(220);
         });
     });
 });
