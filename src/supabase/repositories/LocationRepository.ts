@@ -121,4 +121,16 @@ export class LocationRepository implements LocationService {
         const pounds = kilograms * 2.20462;
         return Math.floor(pounds / 10) * 10;
       }
+
+    deleteMachine = async (machineID: number): Promise<void> => {
+        const {error: deleteMachineError} = await this.client
+        .from('Machines')
+        .delete()
+        .eq('id', machineID)
+
+        if (deleteMachineError) {
+        console.error(deleteMachineError);
+        throw new Error(deleteMachineError.message);
+        }
+      }
 }

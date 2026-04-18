@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { getSupabaseClient } from "../supabase/client";
 import "../styles/LocationsPage.css";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useLocations } from "../di/container";
 import type { Location, Machine } from "../interfaces/LocationService";
 import AddMachineModal from "./AddMachineModal";
 import AddLocationModal from "./AddLocationModal";
+import DeleteConfirmModal from "./DeleteMachineModal";
 
 const MACHINE_TYPES = ["Washer", "Dryer"];
 
@@ -16,6 +16,7 @@ function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [machineToDelete, setMachineToDelete] = useState<Machine | null>(null);
   const locationService = useLocations();
 
   const fetchMachines = async (locationId: string) => {
@@ -55,6 +56,18 @@ function LocationsPage() {
     await fetchMachines(locationId);
   };
 
+  const handleDeleteMachine = async () => {
+    if (!machineToDelete) return;
+    try {
+      await locationService.deleteMachine(machineToDelete.id);
+      await fetchMachines(selectedLocation);
+    } catch (error) {
+      console.error("Failed to delete machine:", error);
+    } finally {
+      setMachineToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="top-section">
@@ -70,7 +83,7 @@ function LocationsPage() {
           <div className="sub-section">
             <p>Add Location:</p>
             <button name="Add location button" onClick={() => setIsLocationModalOpen(true)}>
-              <Plus className="plus" />
+              <Plus />
             </button>
           </div>
         )}
@@ -98,6 +111,7 @@ function LocationsPage() {
               <th>Type</th>
               <th>Status</th>
               <th>Weight</th>
+              {userRole == "Owner" && <th>Delete</th>}
             </tr>
           </thead>
           <tbody>
@@ -116,6 +130,13 @@ function LocationsPage() {
                   <span>{machine.Status}</span>
                 </td>
                 <td>{machine.Weight_kg} kg</td>
+                {userRole == "Owner" && (
+                  <td>
+                    <button onClick={() => setMachineToDelete(machine)} className="delete-button">
+                      <Trash2 />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -133,6 +154,8 @@ function LocationsPage() {
         }))}
       />
       <AddLocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onSuccess={() => fetchLocations()} />
+
+      <DeleteConfirmModal machine={machineToDelete} onConfirm={handleDeleteMachine} onCancel={() => setMachineToDelete(null)} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ export interface LocationService {
     addMachines(machine: Machine): Promise<void|string>
     addLocations(location:Location): Promise<void|string>
     calculatePrice(kilograms: number): number
+    deleteMachine(machineID: number): Promise<void>
 }
 
 export interface Location {
