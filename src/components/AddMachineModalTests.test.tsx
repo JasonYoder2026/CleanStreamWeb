@@ -5,10 +5,12 @@ import AddMachineModal from "./AddMachineModal";
 // ─── Mock useLocations ────────────────────────────────────────────────────────
 
 const mockAddMachines = vi.fn();
+const mockCalculatePrice = vi.fn();
 
 vi.mock("../di/container", () => ({
   useLocations: () => ({
     addMachines: mockAddMachines,
+    calculatePrice: mockCalculatePrice,
   }),
 }));
 
@@ -31,6 +33,7 @@ describe("AddMachineModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAddMachines.mockResolvedValue(undefined);
+    mockCalculatePrice.mockReturnValue(20);
   });
 
   // ── Visibility ────────────────────────────────────────────────────────────
@@ -45,9 +48,7 @@ describe("AddMachineModal", () => {
     it("renders the modal when isOpen is true", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      expect(
-        screen.getByText("Add Machine", { selector: "p" }),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Add Machine", { selector: "p" })).toBeInTheDocument();
     });
   });
 
@@ -58,49 +59,43 @@ describe("AddMachineModal", () => {
       render(<AddMachineModal {...defaultProps} />);
 
       expect(screen.getByLabelText("Machine Name")).toBeInTheDocument();
-      expect(screen.getByLabelText("Price ($)")).toBeInTheDocument();
+      expect(screen.getByLabelText("Weight")).toBeInTheDocument();
       expect(screen.getByLabelText("Run Time (Minutes)")).toBeInTheDocument();
       expect(screen.getByLabelText("Machine Type")).toBeInTheDocument();
       expect(screen.getByLabelText("Location")).toBeInTheDocument();
     });
 
+    it("does not render a Price input field", () => {
+      render(<AddMachineModal {...defaultProps} />);
+
+      expect(screen.queryByLabelText("Price ($)")).not.toBeInTheDocument();
+    });
+
     it("renders machine type options", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      expect(
-        screen.getByRole("option", { name: "Washer" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Washer" })).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "Dryer" })).toBeInTheDocument();
     });
 
     it("renders location options", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      expect(
-        screen.getByRole("option", { name: "Location A" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "Location B" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Location A" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Location B" })).toBeInTheDocument();
     });
 
     it("renders cancel and submit buttons", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      expect(
-        screen.getByRole("button", { name: "Cancel" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Add Machine" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Add Machine" })).toBeInTheDocument();
     });
 
     it("renders the close button", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      expect(
-        screen.getByRole("button", { name: "Close modal" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Close modal" })).toBeInTheDocument();
     });
   });
 
@@ -117,14 +112,14 @@ describe("AddMachineModal", () => {
       expect(screen.getByLabelText("Machine Name")).toHaveValue("Washer #3");
     });
 
-    it("updates price field on change", () => {
+    it("updates weight field on change", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      fireEvent.change(screen.getByLabelText("Price ($)"), {
-        target: { value: "2.5", id: "machinePrice" },
+      fireEvent.change(screen.getByLabelText("Weight"), {
+        target: { value: "12", id: "machineWeight" },
       });
 
-      expect(screen.getByLabelText("Price ($)")).toHaveValue(2.5);
+      expect(screen.getByLabelText("Weight")).toHaveValue(12);
     });
 
     it("updates run time field on change", () => {
@@ -161,14 +156,12 @@ describe("AddMachineModal", () => {
   // ── Submission ────────────────────────────────────────────────────────────
 
   describe("submission", () => {
-    it("calls addMachines with the correct machine data on submit", async () => {
-      render(<AddMachineModal {...defaultProps} />);
-
+    const fillForm = () => {
       fireEvent.change(screen.getByLabelText("Machine Name"), {
         target: { value: "Washer #3", id: "machineName" },
       });
-      fireEvent.change(screen.getByLabelText("Price ($)"), {
-        target: { value: "2.5", id: "machinePrice" },
+      fireEvent.change(screen.getByLabelText("Weight"), {
+        target: { value: "12", id: "machineWeight" },
       });
       fireEvent.change(screen.getByLabelText("Run Time (Minutes)"), {
         target: { value: "30", id: "machineRunTime" },
@@ -179,6 +172,11 @@ describe("AddMachineModal", () => {
       fireEvent.change(screen.getByLabelText("Location"), {
         target: { value: "1", id: "machineLocation" },
       });
+    };
+
+    it("calls addMachines with the correct machine data on submit", async () => {
+      render(<AddMachineModal {...defaultProps} />);
+      fillForm();
 
       fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
 
@@ -189,8 +187,32 @@ describe("AddMachineModal", () => {
             Status: "idle",
             Location_ID: 1,
             Machine_type: "Washer",
+            Weight_kg: "12",
           }),
         );
+      });
+    });
+
+    it("calls calculatePrice with the entered weight on submit", async () => {
+      render(<AddMachineModal {...defaultProps} />);
+      fillForm();
+
+      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
+
+      await waitFor(() => {
+        expect(mockCalculatePrice).toHaveBeenCalledWith("12");
+      });
+    });
+
+    it("sets machine Price from calculatePrice result", async () => {
+      mockCalculatePrice.mockReturnValue(40);
+      render(<AddMachineModal {...defaultProps} />);
+      fillForm();
+
+      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
+
+      await waitFor(() => {
+        expect(mockAddMachines).toHaveBeenCalledWith(expect.objectContaining({ Price: 40 }));
       });
     });
 
@@ -211,6 +233,20 @@ describe("AddMachineModal", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Machine Added!")).toBeInTheDocument();
+      });
+    });
+
+    it("shows the machine name in the success subtitle", async () => {
+      render(<AddMachineModal {...defaultProps} />);
+
+      fireEvent.change(screen.getByLabelText("Machine Name"), {
+        target: { value: "Washer #3", id: "machineName" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Washer #3 has been added successfully.")).toBeInTheDocument();
       });
     });
 
@@ -249,6 +285,21 @@ describe("AddMachineModal", () => {
         expect(defaultProps.onSuccess).not.toHaveBeenCalled();
       });
     });
+
+    it("clears the previous error message on a new submit attempt", async () => {
+      mockAddMachines.mockResolvedValueOnce("First error").mockResolvedValueOnce(undefined);
+
+      render(<AddMachineModal {...defaultProps} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
+      await waitFor(() => screen.getByText("First error"));
+
+      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("First error")).not.toBeInTheDocument();
+      });
+    });
   });
 
   // ── Close behaviour ───────────────────────────────────────────────────────
@@ -273,24 +324,22 @@ describe("AddMachineModal", () => {
     it("calls onClose when clicking the backdrop", () => {
       render(<AddMachineModal {...defaultProps} />);
 
-      fireEvent.click(
-        screen
-          .getByText("Add Machine", { selector: "p" })
-          .closest(".modal-backdrop")!,
-      );
+      fireEvent.click(screen.getByText("Add Machine", { selector: "p" }).closest(".modal-backdrop")!);
 
       expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("resets form fields after closing", () => {
-      render(<AddMachineModal {...defaultProps} />);
+    it("resets form fields after closing and reopening", () => {
+      const { rerender } = render(<AddMachineModal {...defaultProps} />);
 
       fireEvent.change(screen.getByLabelText("Machine Name"), {
         target: { value: "Washer #3", id: "machineName" },
       });
 
       fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      rerender(<AddMachineModal {...defaultProps} isOpen={false} />);
+
+      rerender(<AddMachineModal {...defaultProps} isOpen={true} />);
 
       expect(screen.queryByDisplayValue("Washer #3")).not.toBeInTheDocument();
     });
@@ -301,7 +350,6 @@ describe("AddMachineModal", () => {
       const { rerender } = render(<AddMachineModal {...defaultProps} />);
 
       fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
-
       await waitFor(() => screen.getByText("Some error"));
 
       fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
