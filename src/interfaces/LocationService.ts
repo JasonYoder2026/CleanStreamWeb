@@ -4,6 +4,7 @@ export interface LocationService {
     getMachines(locationId: string): Promise<Machine[]>
     addMachines(machine: Machine): Promise<void|string>
     addLocations(location:Location): Promise<void|string>
+    calculatePrice(kilograms: number): number
 }
 
 export interface Location {
@@ -22,4 +23,5 @@ export interface Machine {
   Status: string;
   Location_ID: number;
   Machine_type: string;
+  Weight_kg: number;
 }

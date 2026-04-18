@@ -55,7 +55,8 @@ export class LocationRepository implements LocationService {
             Runtime: machine.Runtime, 
             Status: machine.Status, 
             Location_ID: machine.Location_ID, 
-            Machine_type: machine.Machine_type});
+            Machine_type: machine.Machine_type,
+            Weight_kg: machine.Weight_kg});
 
         if (addMachinesError) {
         console.error(addMachinesError);
@@ -116,4 +117,8 @@ export class LocationRepository implements LocationService {
           }
       }
 
+    calculatePrice = (kilograms: number) => {
+        const pounds = kilograms * 2.20462;
+        return Math.floor(pounds / 10) * 10;
+      }
 }

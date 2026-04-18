@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {getSupabaseClient} from "../supabase/client";
+import { getSupabaseClient } from "../supabase/client";
 import "../styles/LocationsPage.css";
 import { Plus } from "lucide-react";
 import { useLocations } from "../di/container";
@@ -49,9 +49,7 @@ function LocationsPage() {
     loadRole();
   }, []);
 
-  const handleLocationChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
+  const handleLocationChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
     await fetchMachines(locationId);
@@ -60,12 +58,7 @@ function LocationsPage() {
   return (
     <div>
       <div className="top-section">
-        <select
-          className="locations-list"
-          name="Location List"
-          value={selectedLocation}
-          onChange={handleLocationChange}
-        >
+        <select className="locations-list" name="Location List" value={selectedLocation} onChange={handleLocationChange}>
           <option value="">Select a location</option>
           {locationData.map((location, index) => (
             <option key={index} value={location.id.toString()}>
@@ -76,10 +69,7 @@ function LocationsPage() {
         {userRole == "Owner" && (
           <div className="sub-section">
             <p>Add Location:</p>
-            <button
-              name="Add location button"
-              onClick={() => setIsLocationModalOpen(true)}
-            >
+            <button name="Add location button" onClick={() => setIsLocationModalOpen(true)}>
               <Plus className="plus" />
             </button>
           </div>
@@ -107,7 +97,7 @@ function LocationsPage() {
               <th>Name</th>
               <th>Type</th>
               <th>Status</th>
-              <th>Price</th>
+              <th>Weight</th>
             </tr>
           </thead>
           <tbody>
@@ -125,7 +115,7 @@ function LocationsPage() {
                 <td>
                   <span>{machine.Status}</span>
                 </td>
-                <td>${machine.Price.toFixed(2)}</td>
+                <td>{machine.Weight_kg} kg</td>
               </tr>
             ))}
           </tbody>
@@ -142,11 +132,7 @@ function LocationsPage() {
           name: l.Name,
         }))}
       />
-      <AddLocationModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        onSuccess={() => fetchLocations()}
-      />
+      <AddLocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onSuccess={() => fetchLocations()} />
     </div>
   );
 }
