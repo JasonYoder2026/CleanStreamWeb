@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
-import { ChevronLeft, ChevronRight, Landmark, Map, Settings, LogOut, Home } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Landmark,
+  Map,
+  Settings,
+  LogOut,
+  Home,
+} from "lucide-react";
 import { useAuth } from "../di/container";
 
 function SideBar() {
@@ -23,7 +31,11 @@ function SideBar() {
     return (
       <div className="sidebar-wrapper">
         <div className="closed-side-bar" onClick={() => setOpen(true)} />
-        <button className="sidebar-toggle" onClick={() => setOpen(true)} aria-label="Open sidebar">
+        <button
+          className="sidebar-toggle"
+          onClick={() => setOpen(true)}
+          aria-label="Open sidebar"
+        >
           <ChevronRight />
         </button>
       </div>
@@ -33,19 +45,32 @@ function SideBar() {
   return (
     <div className="sidebar-wrapper">
       <div className="side-bar-container">
-        <button className="sidebar-toggle" onClick={() => setOpen(false)} aria-label="Close sidebar">
+        <button
+          className="sidebar-toggle"
+          onClick={() => setOpen(false)}
+          aria-label="Close sidebar"
+        >
           <ChevronLeft />
         </button>
         <button className="sidebar-item" onClick={() => handleNav("/home")}>
           <Home /> Dashboard
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/refunds")}>
+        <button
+          className="sidebar-item"
+          onClick={() => handleNav("/home/refunds")}
+        >
           <Landmark /> Refunds
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
+        <button
+          className="sidebar-item"
+          onClick={() => handleNav("/home/locations")}
+        >
           <Map /> Locations
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/settings")}>
+        <button
+          className="sidebar-item"
+          onClick={() => handleNav("/home/settings")}
+        >
           <Settings /> Settings
         </button>
 

@@ -21,8 +21,16 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<div><DashboardPage/></div>} />
+          <Route
+            index
+            element={
+              <div>
+                <DashboardPage />
+              </div>
+            }
+          />
           <Route path="refunds" element={<RefundsPage />} />
+          <Route path="locations" element={<LocationsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
