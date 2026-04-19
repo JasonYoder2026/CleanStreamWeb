@@ -10,7 +10,7 @@ interface LocationOption {
 }
 interface MachineFormData {
   machineName: string;
-  machinePrice: number;
+  machineWeight: number;
   machineRunTime: number;
   machineType: string;
   machineLocation: number | "";
@@ -25,19 +25,13 @@ interface AddMachineModalProps {
 
 const emptyForm = (): MachineFormData => ({
   machineName: "",
-  machinePrice: 0,
+  machineWeight: 0,
   machineRunTime: 0,
   machineType: "",
   machineLocation: "",
 });
 
-export default function AddMachineModal({
-  isOpen,
-  onClose,
-  onSuccess,
-  machineTypes,
-  locations,
-}: AddMachineModalProps) {
+export default function AddMachineModal({ isOpen, onClose, onSuccess, machineTypes, locations }: AddMachineModalProps) {
   const [form, setForm] = useState<MachineFormData>(emptyForm());
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -45,9 +39,7 @@ export default function AddMachineModal({
 
   if (!isOpen) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
 
   const handleClose = () => {
     setForm(emptyForm());
@@ -62,11 +54,12 @@ export default function AddMachineModal({
       const machine: Machine = {
         id: 0,
         Name: form.machineName,
-        Price: form.machinePrice,
+        Weight_kg: form.machineWeight,
         Runtime: form.machineRunTime,
         Status: "idle",
         Location_ID: Number(form.machineLocation),
         Machine_type: form.machineType,
+        Price: locationService.calculatePrice(form.machineWeight),
       };
       const result = await locationService.addMachines(machine);
       if (typeof result === "string") {
@@ -77,9 +70,7 @@ export default function AddMachineModal({
       setIsSuccess(true);
       setTimeout(handleClose, 1500);
     } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Something went wrong.",
-      );
+      setErrorMessage(err instanceof Error ? err.message : "Something went wrong.");
     }
   };
 
@@ -92,19 +83,14 @@ export default function AddMachineModal({
               <Check strokeWidth={3} size={22} color="#fff" />
             </div>
             <p className="success-title">Machine Added!</p>
-            <p className="success-subtitle">
-              {form.machineName || "Machine"} has been added successfully.
-            </p>
+            <p className="success-subtitle">{form.machineName || "Machine"} has been added successfully.</p>
           </div>
         </div>
       </div>
     );
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={(e) => e.target === e.currentTarget && handleClose()}
-    >
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && handleClose()}>
       <div className="modal-card">
         <div className="top-section">
           <p>Add Machine</p>
@@ -127,19 +113,12 @@ export default function AddMachineModal({
             <label className="form-label" htmlFor="machineName">
               Machine Name
             </label>
-            <input
-              className="form-input"
-              id="machineName"
-              type="text"
-              placeholder="e.g. Washer #3"
-              value={form.machineName}
-              onChange={handleChange}
-            />
+            <input className="form-input" id="machineName" type="text" placeholder="e.g. Washer #3" value={form.machineName} onChange={handleChange} />
           </div>
 
           <div className="form-row">
             {[
-              { id: "machinePrice", label: "Price ($)", placeholder: "0.00" },
+              { id: "machineWeight", label: "Weight", placeholder: "0" },
               {
                 id: "machineRunTime",
                 label: "Run Time (Minutes)",
@@ -150,15 +129,7 @@ export default function AddMachineModal({
                 <label className="form-label" htmlFor={id}>
                   {label}
                 </label>
-                <input
-                  className="form-input"
-                  id={id}
-                  type="number"
-                  min="0"
-                  placeholder={placeholder}
-                  value={form[id as keyof MachineFormData]}
-                  onChange={handleChange}
-                />
+                <input className="form-input" id={id} type="number" min="0" placeholder={placeholder} value={form[id as keyof MachineFormData]} onChange={handleChange} />
               </div>
             ))}
           </div>
@@ -167,12 +138,7 @@ export default function AddMachineModal({
             <label className="form-label" htmlFor="machineType">
               Machine Type
             </label>
-            <select
-              className="form-select"
-              id="machineType"
-              value={form.machineType}
-              onChange={handleChange}
-            >
+            <select className="form-select" id="machineType" value={form.machineType} onChange={handleChange}>
               <option value="" disabled>
                 Select a type…
               </option>
@@ -188,12 +154,7 @@ export default function AddMachineModal({
             <label className="form-label" htmlFor="machineLocation">
               Location
             </label>
-            <select
-              className="form-select"
-              id="machineLocation"
-              value={form.machineLocation}
-              onChange={handleChange}
-            >
+            <select className="form-select" id="machineLocation" value={form.machineLocation} onChange={handleChange}>
               <option value="" disabled>
                 Select a location…
               </option>

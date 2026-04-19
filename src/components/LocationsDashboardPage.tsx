@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import {getSupabaseClient} from "../supabase/client";
 import "../styles/LocationsPage.css";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useLocations } from "../di/container";
 import type { Location, Machine } from "../interfaces/LocationService";
 import AddMachineModal from "./AddMachineModal";
 import AddLocationModal from "./AddLocationModal";
+import DeleteMachineModal from "./DeleteMachineModal";
 
 const MACHINE_TYPES = ["Washer", "Dryer"];
 
@@ -16,6 +16,7 @@ function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [machineToDelete, setMachineToDelete] = useState<Machine | null>(null);
   const locationService = useLocations();
 
   const fetchMachines = async (locationId: string) => {
@@ -49,23 +50,28 @@ function LocationsPage() {
     loadRole();
   }, []);
 
-  const handleLocationChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
+  const handleLocationChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
     await fetchMachines(locationId);
   };
 
+  const handleDeleteMachine = async () => {
+    if (!machineToDelete) return;
+    try {
+      await locationService.deleteMachine(machineToDelete.id);
+      await fetchMachines(selectedLocation);
+    } catch (error) {
+      console.error("Failed to delete machine:", error);
+    } finally {
+      setMachineToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="top-section">
-        <select
-          className="locations-list"
-          name="Location List"
-          value={selectedLocation}
-          onChange={handleLocationChange}
-        >
+        <select className="locations-list" name="Location List" value={selectedLocation} onChange={handleLocationChange}>
           <option value="">Select a location</option>
           {locationData.map((location, index) => (
             <option key={index} value={location.id.toString()}>
@@ -76,11 +82,8 @@ function LocationsPage() {
         {userRole == "Owner" && (
           <div className="sub-section">
             <p>Add Location:</p>
-            <button
-              name="Add location button"
-              onClick={() => setIsLocationModalOpen(true)}
-            >
-              <Plus className="plus" />
+            <button name="Add location button" onClick={() => setIsLocationModalOpen(true)}>
+              <Plus />
             </button>
           </div>
         )}
@@ -107,7 +110,8 @@ function LocationsPage() {
               <th>Name</th>
               <th>Type</th>
               <th>Status</th>
-              <th>Price</th>
+              <th>Weight</th>
+              {userRole == "Owner" && <th>Delete</th>}
             </tr>
           </thead>
           <tbody>
@@ -125,7 +129,14 @@ function LocationsPage() {
                 <td>
                   <span>{machine.Status}</span>
                 </td>
-                <td>${machine.Price.toFixed(2)}</td>
+                <td>{machine.Weight_kg} kg</td>
+                {userRole == "Owner" && (
+                  <td>
+                    <button onClick={() => setMachineToDelete(machine)} className="delete-button">
+                      <Trash2 />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -142,11 +153,9 @@ function LocationsPage() {
           name: l.Name,
         }))}
       />
-      <AddLocationModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        onSuccess={() => fetchLocations()}
-      />
+      <AddLocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onSuccess={() => fetchLocations()} />
+
+      <DeleteMachineModal machine={machineToDelete} onConfirm={handleDeleteMachine} onCancel={() => setMachineToDelete(null)} />
     </div>
   );
 }
