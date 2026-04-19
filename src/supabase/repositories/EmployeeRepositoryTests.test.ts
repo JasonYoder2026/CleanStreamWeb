@@ -178,7 +178,6 @@ describe("EmployeeRepository", () => {
     });
 
     it("throws when changeUserRole fails before the insert", async () => {
-      // Override the first mockSelect to simulate changeUserRole failing
       mockSelect.mockReset();
       mockEq.mockReturnValue({ select: mockSelect });
       mockSelect.mockResolvedValueOnce({
@@ -330,60 +329,72 @@ describe("EmployeeRepository", () => {
 
   // ── removeAdminLocation ───────────────────────────────────────────────────
 
-  describe("removeAdminLocation", () => {
-    beforeEach(() => {
-      // removeAdminRole succeeds and resolves the target user ID
-      mockSelect.mockResolvedValueOnce({
-        data: [{ id: mockTargetUserID }],
-        error: null,
-      });
+describe("removeAdminLocation", () => {
+  const mockLocalSelect = vi.fn();
+  const mockLocalEqRole = vi.fn();
+  const mockLocalEqDelete = vi.fn();
+
+  beforeEach(() => {
+    // These run AFTER the outer beforeEach, so we reassign the chains here
+    // to override whatever the outer scope set up.
+
+    // removeAdminRole chain: update → eq → select (terminal async)
+    mockLocalSelect.mockResolvedValue({
+      data: [{ id: mockTargetUserID }],
+      error: null,
     });
+    mockLocalEqRole.mockReturnValue({ select: mockLocalSelect });
+    mockUpdate.mockReturnValue({ eq: mockLocalEqRole });
 
-    it("deletes from the Location_to_Admin table", async () => {
-      mockEq.mockResolvedValueOnce({ error: null });
+    // removeAdminLocation delete chain: delete → eq (terminal async)
+    mockLocalEqDelete.mockResolvedValue({ error: null });
+    mockDelete.mockReturnValue({ eq: mockLocalEqDelete });
 
-      await repo.removeAdminLocation("john@example.com");
-
-      expect(mockFrom).toHaveBeenCalledWith("Location_to_Admin");
-    });
-
-    it("deletes the row matching the resolved user ID", async () => {
-      mockEq.mockResolvedValueOnce({ error: null });
-
-      await repo.removeAdminLocation("john@example.com");
-
-      expect(mockDelete).toHaveBeenCalled();
-      expect(mockEq).toHaveBeenCalledWith("user_id", mockTargetUserID);
-    });
-
-    it("resolves without a value on success", async () => {
-      mockEq.mockResolvedValueOnce({ error: null });
-
-      await expect(
-        repo.removeAdminLocation("john@example.com"),
-      ).resolves.toBeUndefined();
-    });
-
-    it("throws when the delete returns an error", async () => {
-      mockEq.mockResolvedValueOnce({ error: { message: "Delete failed" } });
-
-      await expect(
-        repo.removeAdminLocation("john@example.com"),
-      ).rejects.toThrow("Delete failed");
-    });
-
-    it("throws when removeAdminRole fails before the delete", async () => {
-      mockSelect.mockReset();
-      mockEq.mockReturnValue({ select: mockSelect });
-      mockSelect.mockResolvedValueOnce({
-        data: null,
-        error: { message: "Profile not found" },
-      });
-
-      await expect(
-        repo.removeAdminLocation("john@example.com"),
-      ).rejects.toThrow("Profile not found");
-      expect(mockDelete).not.toHaveBeenCalled();
+    mockFrom.mockReturnValue({
+      update: mockUpdate,
+      insert: mockInsert,
+      select: mockSelect,
+      delete: mockDelete,
     });
   });
+
+  it("deletes from the Location_to_Admin table", async () => {
+    await repo.removeAdminLocation("john@example.com");
+
+    expect(mockFrom).toHaveBeenCalledWith("Location_to_Admin");
+  });
+
+  it("deletes the row matching the resolved user ID", async () => {
+    await repo.removeAdminLocation("john@example.com");
+
+    expect(mockDelete).toHaveBeenCalled();
+    expect(mockLocalEqDelete).toHaveBeenCalledWith("user_id", mockTargetUserID);
+  });
+
+  it("resolves without a value on success", async () => {
+    await expect(
+      repo.removeAdminLocation("john@example.com"),
+    ).resolves.toBeUndefined();
+  });
+
+  it("throws when the delete returns an error", async () => {
+    mockLocalEqDelete.mockResolvedValueOnce({ error: { message: "Delete failed" } });
+
+    await expect(
+      repo.removeAdminLocation("john@example.com"),
+    ).rejects.toThrow("Delete failed");
+  });
+
+  it("throws when removeAdminRole fails before the delete", async () => {
+    mockLocalSelect.mockResolvedValueOnce({
+      data: null,
+      error: { message: "Profile not found" },
+    });
+
+    await expect(
+      repo.removeAdminLocation("john@example.com"),
+    ).rejects.toThrow("Profile not found");
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+});
 });
