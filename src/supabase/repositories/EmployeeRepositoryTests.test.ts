@@ -16,6 +16,7 @@ vi.mock("../../di/container", () => ({
 const mockSelect = vi.fn();
 const mockUpdate = vi.fn();
 const mockInsert = vi.fn();
+const mockDelete = vi.fn();
 const mockEq = vi.fn();
 const mockNeq = vi.fn();
 const mockIn = vi.fn();
@@ -24,12 +25,14 @@ const mockFrom = vi.fn(() => ({
   update: mockUpdate,
   insert: mockInsert,
   select: mockSelect,
+  delete: mockDelete,
 }));
 
 mockUpdate.mockReturnValue({ eq: mockEq });
 mockEq.mockReturnValue({ select: mockSelect });
 mockSelect.mockReturnValue({ neq: mockNeq });
 mockNeq.mockReturnValue({ in: mockIn });
+mockDelete.mockReturnValue({ eq: mockEq });
 
 const mockClient = { from: mockFrom } as any;
 
@@ -65,9 +68,10 @@ describe("EmployeeRepository", () => {
     mockGetUserID.mockResolvedValue(mockUserID);
 
     // Default happy-path chain for changeUserRole
-    mockFrom.mockReturnValue({ update: mockUpdate, insert: mockInsert, select: mockSelect });
+    mockFrom.mockReturnValue({ update: mockUpdate, insert: mockInsert, select: mockSelect, delete: mockDelete });
     mockUpdate.mockReturnValue({ eq: mockEq });
     mockEq.mockReturnValue({ select: mockSelect });
+    mockDelete.mockReturnValue({ eq: mockEq });
   });
 
   // ── changeUserRole ────────────────────────────────────────────────────────
@@ -79,7 +83,7 @@ describe("EmployeeRepository", () => {
         error: null,
       });
 
-      await repo.changeUserRole("john@example.com");
+      await repo.assignAdminRole("john@example.com");
 
       expect(mockFrom).toHaveBeenCalledWith("profiles");
     });
@@ -90,7 +94,7 @@ describe("EmployeeRepository", () => {
         error: null,
       });
 
-      await repo.changeUserRole("john@example.com");
+      await repo.assignAdminRole("john@example.com");
 
       expect(mockUpdate).toHaveBeenCalledWith({ roles: "Admin" });
       expect(mockEq).toHaveBeenCalledWith("email", "john@example.com");
@@ -102,7 +106,7 @@ describe("EmployeeRepository", () => {
         error: null,
       });
 
-      const result = await repo.changeUserRole("john@example.com");
+      const result = await repo.assignAdminRole("john@example.com");
 
       expect(result).toBe(mockTargetUserID);
     });
@@ -110,7 +114,7 @@ describe("EmployeeRepository", () => {
     it("returns undefined when the response data is empty", async () => {
       mockSelect.mockResolvedValueOnce({ data: [], error: null });
 
-      const result = await repo.changeUserRole("john@example.com");
+      const result = await repo.assignAdminRole("john@example.com");
 
       expect(result).toBeUndefined();
     });
@@ -121,7 +125,7 @@ describe("EmployeeRepository", () => {
         error: { message: "Update failed" },
       });
 
-      await expect(repo.changeUserRole("john@example.com")).rejects.toThrow(
+      await expect(repo.assignAdminRole("john@example.com")).rejects.toThrow(
         "Update failed",
       );
     });
@@ -205,6 +209,7 @@ describe("EmployeeRepository", () => {
         update: mockUpdate,
         insert: mockInsert,
         select: mockSelectChain,
+        delete: mockDelete,
       });
     });
 
@@ -263,6 +268,122 @@ describe("EmployeeRepository", () => {
       });
 
       await expect(repo.fetchEmployees([1, 2])).rejects.toThrow("Fetch failed");
+    });
+  });
+
+  // ── removeAdminRole ───────────────────────────────────────────────────────
+
+  describe("removeAdminRole", () => {
+    it("queries the profiles table", async () => {
+      mockSelect.mockResolvedValueOnce({
+        data: [{ id: mockTargetUserID }],
+        error: null,
+      });
+
+      await repo.removeAdminRole("john@example.com");
+
+      expect(mockFrom).toHaveBeenCalledWith("profiles");
+    });
+
+    it("updates the role to User for the given email", async () => {
+      mockSelect.mockResolvedValueOnce({
+        data: [{ id: mockTargetUserID }],
+        error: null,
+      });
+
+      await repo.removeAdminRole("john@example.com");
+
+      expect(mockUpdate).toHaveBeenCalledWith({ roles: "User" });
+      expect(mockEq).toHaveBeenCalledWith("email", "john@example.com");
+    });
+
+    it("returns the user ID from the updated profile", async () => {
+      mockSelect.mockResolvedValueOnce({
+        data: [{ id: mockTargetUserID }],
+        error: null,
+      });
+
+      const result = await repo.removeAdminRole("john@example.com");
+
+      expect(result).toBe(mockTargetUserID);
+    });
+
+    it("returns undefined when the response data is empty", async () => {
+      mockSelect.mockResolvedValueOnce({ data: [], error: null });
+
+      const result = await repo.removeAdminRole("john@example.com");
+
+      expect(result).toBeUndefined();
+    });
+
+    it("throws when Supabase returns an error", async () => {
+      mockSelect.mockResolvedValueOnce({
+        data: null,
+        error: { message: "Update failed" },
+      });
+
+      await expect(repo.removeAdminRole("john@example.com")).rejects.toThrow(
+        "Update failed",
+      );
+    });
+  });
+
+  // ── removeAdminLocation ───────────────────────────────────────────────────
+
+  describe("removeAdminLocation", () => {
+    beforeEach(() => {
+      // removeAdminRole succeeds and resolves the target user ID
+      mockSelect.mockResolvedValueOnce({
+        data: [{ id: mockTargetUserID }],
+        error: null,
+      });
+    });
+
+    it("deletes from the Location_to_Admin table", async () => {
+      mockEq.mockResolvedValueOnce({ error: null });
+
+      await repo.removeAdminLocation("john@example.com");
+
+      expect(mockFrom).toHaveBeenCalledWith("Location_to_Admin");
+    });
+
+    it("deletes the row matching the resolved user ID", async () => {
+      mockEq.mockResolvedValueOnce({ error: null });
+
+      await repo.removeAdminLocation("john@example.com");
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockEq).toHaveBeenCalledWith("user_id", mockTargetUserID);
+    });
+
+    it("resolves without a value on success", async () => {
+      mockEq.mockResolvedValueOnce({ error: null });
+
+      await expect(
+        repo.removeAdminLocation("john@example.com"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("throws when the delete returns an error", async () => {
+      mockEq.mockResolvedValueOnce({ error: { message: "Delete failed" } });
+
+      await expect(
+        repo.removeAdminLocation("john@example.com"),
+      ).rejects.toThrow("Delete failed");
+    });
+
+    it("throws when removeAdminRole fails before the delete", async () => {
+      mockSelect.mockReset();
+      mockEq.mockReturnValue({ select: mockSelect });
+      mockSelect.mockResolvedValueOnce({
+        data: null,
+        error: { message: "Profile not found" },
+      });
+
+      await expect(
+        repo.removeAdminLocation("john@example.com"),
+      ).rejects.toThrow("Profile not found");
+      expect(mockDelete).not.toHaveBeenCalled();
     });
   });
 });
