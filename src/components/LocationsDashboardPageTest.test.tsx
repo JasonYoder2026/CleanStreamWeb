@@ -13,17 +13,34 @@ vi.mock("./AddLocationModal", () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="add-location-modal" /> : null),
 }));
 
+vi.mock("./DeleteMachineModal", () => ({
+  default: ({ machine, onConfirm, onCancel }: { machine: Machine | null; onConfirm: () => void; onCancel: () => void }) =>
+    machine ? (
+      <div data-testid="delete-confirm-modal">
+        <span data-testid="delete-machine-name">{machine.Name}</span>
+        <button data-testid="confirm-delete-btn" onClick={onConfirm}>
+          Confirm
+        </button>
+        <button data-testid="cancel-delete-btn" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    ) : null,
+}));
+
 // ─── Mock useLocations ────────────────────────────────────────────────────────
 
 const mockGetLocations = vi.fn();
 const mockGetMachines = vi.fn();
 const mockFetchUserRole = vi.fn();
+const mockDeleteMachine = vi.fn();
 
 vi.mock("../di/container", () => ({
   useLocations: () => ({
     getLocations: mockGetLocations,
     getMachines: mockGetMachines,
     fetchUserRole: mockFetchUserRole,
+    deleteMachine: mockDeleteMachine,
   }),
 }));
 
@@ -69,6 +86,10 @@ const mockMachines: Machine[] = [
   },
 ];
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const getDeleteButtons = () => Array.from(document.querySelectorAll<HTMLButtonElement>("button.delete-button"));
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("LocationsPage", () => {
@@ -77,6 +98,7 @@ describe("LocationsPage", () => {
     mockGetLocations.mockResolvedValue(mockLocations);
     mockGetMachines.mockResolvedValue(mockMachines);
     mockFetchUserRole.mockResolvedValue("Admin");
+    mockDeleteMachine.mockResolvedValue(undefined);
   });
 
   // ── Rendering ─────────────────────────────────────────────────────────────
@@ -139,9 +161,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "1" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
       await waitFor(() => {
         expect(screen.getByText("Washer 1")).toBeInTheDocument();
@@ -154,9 +174,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "1" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
       await waitFor(() => {
         expect(screen.getByText("12 kg")).toBeInTheDocument();
@@ -169,9 +187,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "1" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
       await waitFor(() => screen.getByText("Washer 1"));
 
@@ -184,9 +200,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "1" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
       await waitFor(() => {
         expect(screen.getByText("Washer")).toBeInTheDocument();
@@ -248,6 +262,189 @@ describe("LocationsPage", () => {
 
       expect(screen.queryByTestId("add-machine-modal")).not.toBeInTheDocument();
     });
+
+    it("renders the Delete column header for Owner", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Delete")).toBeInTheDocument();
+      });
+    });
+
+    it("renders a delete button for each machine row for Owner", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("opens the delete confirm modal when a delete button is clicked", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      expect(screen.getByTestId("delete-confirm-modal")).toBeInTheDocument();
+    });
+
+    it("shows the correct machine name in the delete confirm modal", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      expect(screen.getByTestId("delete-machine-name").textContent).toBe("Washer 1");
+    });
+
+    it("delete confirm modal is absent before a delete button is clicked", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      expect(screen.queryByTestId("delete-confirm-modal")).not.toBeInTheDocument();
+    });
+
+    it("closes the delete confirm modal when cancel is clicked", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      expect(screen.getByTestId("delete-confirm-modal")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId("cancel-delete-btn"));
+
+      expect(screen.queryByTestId("delete-confirm-modal")).not.toBeInTheDocument();
+    });
+
+    it("calls deleteMachine with the correct machine id on confirm", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      fireEvent.click(screen.getByTestId("confirm-delete-btn"));
+
+      await waitFor(() => {
+        expect(mockDeleteMachine).toHaveBeenCalledWith(mockMachines[0]!.id);
+      });
+    });
+
+    it("closes the delete confirm modal after confirming deletion", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      fireEvent.click(screen.getByTestId("confirm-delete-btn"));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId("delete-confirm-modal")).not.toBeInTheDocument();
+      });
+    });
+
+    it("refreshes machine list after confirming deletion", async () => {
+      const updatedMachines: Machine[] = [mockMachines[1]!];
+      mockGetMachines.mockResolvedValueOnce(mockMachines).mockResolvedValueOnce(updatedMachines);
+
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      fireEvent.click(screen.getByTestId("confirm-delete-btn"));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Washer 1")).not.toBeInTheDocument();
+        expect(screen.getByText("Dryer 1")).toBeInTheDocument();
+      });
+    });
+
+    it("does not call deleteMachine when cancel is clicked", async () => {
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      fireEvent.click(screen.getByTestId("cancel-delete-btn"));
+
+      expect(mockDeleteMachine).not.toHaveBeenCalled();
+    });
+
+    it("retains machine list when deleteMachine fails", async () => {
+      mockDeleteMachine.mockRejectedValue(new Error("Delete failed"));
+
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      const deleteButtons = getDeleteButtons();
+      fireEvent.click(deleteButtons[0]!);
+
+      fireEvent.click(screen.getByTestId("confirm-delete-btn"));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId("delete-confirm-modal")).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByText("Washer 1")).toBeInTheDocument();
+    });
   });
 
   // ── Non-owner role ────────────────────────────────────────────────────────
@@ -280,6 +477,28 @@ describe("LocationsPage", () => {
       expect(screen.queryByText("Add Location:")).not.toBeInTheDocument();
       expect(screen.queryByText("Add Machine")).not.toBeInTheDocument();
     });
+
+    it("does not render the Delete column header for Admin", async () => {
+      mockFetchUserRole.mockResolvedValue("Admin");
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+    });
+
+    it("does not render delete buttons in machine rows for Admin", async () => {
+      mockFetchUserRole.mockResolvedValue("Admin");
+      render(<LocationsPage />);
+
+      await waitFor(() => screen.getByText("Location A"));
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+
+      await waitFor(() => screen.getByText("Washer 1"));
+
+      expect(document.querySelector("button.delete-button")).not.toBeInTheDocument();
+    });
   });
 
   // ── Service calls ─────────────────────────────────────────────────────────
@@ -306,9 +525,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "2" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "2" } });
 
       await waitFor(() => {
         expect(mockGetMachines).toHaveBeenCalledWith("2");
@@ -365,9 +582,7 @@ describe("LocationsPage", () => {
 
       await waitFor(() => screen.getByText("Location A"));
 
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: "1" },
-      });
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
       await waitFor(() => {
         expect(screen.getByText("No machines at this location.")).toBeInTheDocument();

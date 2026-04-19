@@ -156,3 +156,7 @@
   transition: background-color 0.15s;
   padding: 0;
 }
+
+.delete-button:hover{
+  background-color: var(--highlight-color);
+}
