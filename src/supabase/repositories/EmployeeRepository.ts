@@ -6,7 +6,7 @@ import type { EmployeeService, AdminForm, EmployeeRecord } from "../../interface
 export class EmployeeRepository implements EmployeeService {
     constructor(private client: SupabaseClient) { }
 
-    changeUserRole = async (email: string): Promise<string> => {
+    assignAdminRole = async (email: string): Promise<string> => {
         const { data: userData, error: userError } = await this.client
             .from("profiles")
             .update({ roles: 'Admin' })
@@ -21,7 +21,7 @@ export class EmployeeRepository implements EmployeeService {
     }
 
     assignAdminLocation = async (form: AdminForm): Promise<void> => {
-        const userID = await this.changeUserRole(form.email)
+        const userID = await this.assignAdminRole(form.email)
         if(userID === "") throw new Error("Could not find that user")
         const { error: assignError } = await this.client
             .from("Location_to_Admin")
@@ -53,10 +53,37 @@ export class EmployeeRepository implements EmployeeService {
             throw new Error(employeeDataError.message);
         }
 
-    return employeeData.map(entry => ({
-    locationID: entry.location_id,
-    name: (entry.profiles as any)?.full_name,
-    email: (entry.profiles as any)?.email,
-}))
-}
+            return employeeData.map(entry => ({
+            locationID: entry.location_id,
+            name: (entry.profiles as any)?.full_name,
+            email: (entry.profiles as any)?.email,
+        }))
+        }
+
+    removeAdminLocation = async (email: string): Promise<void> => {
+            const EmployeeID = await this.removeAdminRole(email)
+            const {error: deleteEmployeeError} = await this.client
+            .from('Location_to_Admin')
+            .delete()
+            .eq('user_id', EmployeeID)
+
+            if (deleteEmployeeError) {
+            console.error(deleteEmployeeError);
+            throw new Error(deleteEmployeeError.message);
+            }
+        }
+
+    removeAdminRole = async (email: string): Promise<string> => {
+        const { data: userData, error: userError } = await this.client
+            .from("profiles")
+            .update({ roles: 'User' })
+            .eq("email", email)
+            .select('id')
+
+        if (userError) {
+            console.error(userError);
+            throw new Error(userError.message);
+        }
+        return userData[0]?.id
+    }
 }

@@ -5,7 +5,7 @@ import { useLocations } from "../di/container";
 import type { Location, Machine } from "../interfaces/LocationService";
 import AddMachineModal from "./AddMachineModal";
 import AddLocationModal from "./AddLocationModal";
-import DeleteConfirmModal from "./DeleteMachineModal";
+import DeleteMachineModal from "./DeleteMachineModal";
 
 const MACHINE_TYPES = ["Washer", "Dryer"];
 
@@ -155,7 +155,7 @@ function LocationsPage() {
       />
       <AddLocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onSuccess={() => fetchLocations()} />
 
-      <DeleteConfirmModal machine={machineToDelete} onConfirm={handleDeleteMachine} onCancel={() => setMachineToDelete(null)} />
+      <DeleteMachineModal machine={machineToDelete} onConfirm={handleDeleteMachine} onCancel={() => setMachineToDelete(null)} />
     </div>
   );
 }
