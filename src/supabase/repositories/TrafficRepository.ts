@@ -13,17 +13,12 @@ interface LocationRow {
 
 interface RawTrafficEventRow {
   created_at?: string | null;
-  date?: string | null;
   location_id?: number | null;
+  LocationID?: number | null;
   amount?: number | null;
   total?: number | null;
   transaction_amount?: number | null;
   price?: number | null;
-}
-
-interface TrafficQueryPlan {
-  table: string;
-  dateColumn: "created_at" | "date" | "transaction_date" | "timestamp";
 }
 
 function toSafeNumber(value: unknown): number {
@@ -55,17 +50,20 @@ export class TrafficRepository implements TrafficService {
       .select("id, Name");
 
     if (locationError) {
-      throw locationError;
+      console.warn(
+        "Traffic locations lookup failed; continuing without filter",
+        locationError,
+      );
     }
 
-    const managedLocations: TrafficLocation[] = (
-      (locationRows ?? []) as LocationRow[]
-    )
-      .map((row) => ({
-        id: row.id,
-        name: row.Name,
-      }))
-      .filter((row) => Number.isFinite(row.id) && Boolean(row.name));
+    const managedLocations: TrafficLocation[] = locationError
+      ? []
+      : ((locationRows ?? []) as LocationRow[])
+          .map((row) => ({
+            id: row.id,
+            name: row.Name,
+          }))
+          .filter((row) => Number.isFinite(row.id) && Boolean(row.name));
 
     const events = await this.fetchTrafficEvents(startIso);
 
@@ -76,180 +74,23 @@ export class TrafficRepository implements TrafficService {
   };
 
   private async fetchTrafficEvents(startIso: string): Promise<TrafficEvent[]> {
-    const queryPlans: TrafficQueryPlan[] = [
-      {
-        table: "Transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Transactions",
-        dateColumn: "date",
-      },
-      { table: "Transactions", dateColumn: "date" },
-      {
-        table: "Transactions",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "Transactions",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "Transactions",
-        dateColumn: "timestamp",
-      },
-      { table: "Transactions", dateColumn: "timestamp" },
+    const { data, error } = await this.client
+      .from("transactions")
+      .select("*")
+      .gte("created_at", startIso);
 
-      {
-        table: "Transaction",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Transaction",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Transaction",
-        dateColumn: "date",
-      },
-      { table: "Transaction", dateColumn: "date" },
-      {
-        table: "Transaction",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "Transaction",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "Transaction",
-        dateColumn: "timestamp",
-      },
-      { table: "Transaction", dateColumn: "timestamp" },
-
-      {
-        table: "transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "transactions",
-        dateColumn: "date",
-      },
-      { table: "transactions", dateColumn: "date" },
-      {
-        table: "transactions",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "transactions",
-        dateColumn: "transaction_date",
-      },
-      {
-        table: "transactions",
-        dateColumn: "timestamp",
-      },
-      { table: "transactions", dateColumn: "timestamp" },
-
-      {
-        table: "Machine_Transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Machine_Transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "Machine_Transactions",
-        dateColumn: "date",
-      },
-      { table: "Machine_Transactions", dateColumn: "date" },
-      {
-        table: "Machine_Transactions",
-        dateColumn: "transaction_date",
-      },
-      { table: "Machine_Transactions", dateColumn: "transaction_date" },
-
-      {
-        table: "machine_transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "machine_transactions",
-        dateColumn: "created_at",
-      },
-      {
-        table: "machine_transactions",
-        dateColumn: "date",
-      },
-      { table: "machine_transactions", dateColumn: "date" },
-      {
-        table: "machine_transactions",
-        dateColumn: "transaction_date",
-      },
-      { table: "machine_transactions", dateColumn: "transaction_date" },
-    ];
-
-    let lastError: unknown = null;
-    let bestResult: TrafficEvent[] = [];
-    let hadSuccessfulQuery = false;
-
-    for (const plan of queryPlans) {
-      const { data, error } = await this.client
-        .from(plan.table)
-        .select("*")
-        .gte(plan.dateColumn, startIso);
-
-      if (!error) {
-        const mapped = ((data ?? []) as RawTrafficEventRow[])
-          .map((row) => ({
-            occurredAt:
-              row.created_at ??
-              row.date ??
-              (row as { transaction_date?: string | null }).transaction_date ??
-              (row as { timestamp?: string | null }).timestamp ??
-              "",
-            locationId: row.location_id ?? null,
-            amount: toSafeNumber(
-              row.amount ?? row.total ?? row.transaction_amount ?? row.price,
-            ),
-          }))
-          .filter((row) => Boolean(row.occurredAt));
-
-        if (mapped.length > 0) {
-          return mapped;
-        }
-
-        hadSuccessfulQuery = true;
-        bestResult = mapped;
-        continue;
-      }
-
-      lastError = error;
+    if (error) {
+      throw error;
     }
 
-    if (hadSuccessfulQuery) {
-      return bestResult;
-    }
-
-    const message =
-      (lastError as { message?: string } | null)?.message?.toLowerCase() ?? "";
-
-    if (
-      message.includes("relation") ||
-      message.includes("does not exist") ||
-      message.includes("column")
-    ) {
-      return [];
-    }
-
-    throw lastError ?? new Error("No supported transactions table found");
+    return ((data ?? []) as RawTrafficEventRow[])
+      .map((row) => ({
+        occurredAt: row.created_at ?? "",
+        locationId: row.location_id ?? row.LocationID ?? null,
+        amount: toSafeNumber(
+          row.amount ?? row.total ?? row.transaction_amount ?? row.price,
+        ),
+      }))
+      .filter((row) => Boolean(row.occurredAt));
   }
 }
