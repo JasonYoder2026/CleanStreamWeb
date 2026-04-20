@@ -48,7 +48,7 @@ function SideBar() {
         <button className="sidebar-item" onClick={() => handleNav("/home/refunds")}>
           <Landmark /> Refunds
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/maintenances")}>
+        <button className="sidebar-item" onClick={() => handleNav("/home/maintenance")}>
           <Hammer /> Maintenance
         </button>
         <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>

@@ -5,18 +5,18 @@ import type { Maintenance } from "../interfaces/MaintenanceService";
 
 const mockMaintenances: Maintenance[] = [
     {
-        userId: "USER-001",
+        user_id: "USER-001",
         category: "Plumbing",
         description: "Leaky faucet in the breakroom",
-        date: "2024-03-20T10:00:00Z",
+        created_at: "2024-03-20T10:00:00Z",
         location: "Level 1, Kitchen",
         image_data: "https://example.com/image1.jpg",
     },
     {
-        userId: "USER-002",
+        user_id: "USER-002",
         category: "Electrical",
         description: "Flickering lights in hallway",
-        date: "2024-03-21T11:30:00Z",
+        created_at: "2024-03-21T11:30:00Z",
         location: "Level 2, West Wing",
         image_data: "",
     },

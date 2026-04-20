@@ -5,31 +5,24 @@ export class MaintenanceRepository implements MaintenanceService {
     constructor(private client: SupabaseClient) {}
 
     getMaintenances = async (): Promise<Maintenance[]> => {
-        const sevenDaysAgo = new Date();
         const twoWeeksAgo = new Date();
-        twoWeeksAgo.setDate(sevenDaysAgo.getDate() - 14);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
         const { data, error } = await this.client
-            .from("Maintenances")
-            .select(`
-                userId,
-                category,
-                description,
-                date,
-                location,
-                image_data,
-                `)
-            .gte("date", twoWeeksAgo.toISOString());
+            .from("Maintenance")
+            .select("user_id, category, description, created_at, location, image_data")
+            .gte("created_at", twoWeeksAgo.toISOString());
 
-
-        if (error || data === null) throw error;
-         
-        return data.map((row: any)=> ({
-            userId: row.userId,
+        if (error) throw error;
+        if (data === null) return [];
+          
+        return data.map((row: any) => ({
+            user_id: row.user_id,
             category: row.category,
             description: row.description,
-            date: row.date,
+            created_at: row.created_at,
             location: row.location,
-            image_data: row.image_data,
+            image_data: row.image_data
         }));
     }
 }

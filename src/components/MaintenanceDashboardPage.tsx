@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
+import { useMaintenance } from "../di/container"; 
 import type { Maintenance, MaintenanceService } from "../interfaces/MaintenanceService.ts";
-import "./MaintenanceDashboard.css";
+import "../styles/MaintenancePage.css";
 
 interface MaintenanceDashboardProps {
-  maintenanceService: MaintenanceService;
+  maintenanceService?: MaintenanceService;
 }
 
 const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({ 
-  maintenanceService 
+  maintenanceService: propService 
 }) => {
+  const { getMaintenances } = useMaintenance();
+  const service = propService || getMaintenances();
+
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +25,7 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
   const fetchMaintenances = async () => {
     try {
       setLoading(true);
-      const data = await maintenanceService.getMaintenances();
+      const data = await getMaintenances();
       setMaintenances(data);
       setError(null);
     } catch (err) {
@@ -77,8 +81,8 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
           <tbody>
             {filteredData.length > 0 ? (
               filteredData.map((item, index) => (
-                <tr key={`${item.userId}-${index}`}>
-                  <td>{new Date(item.date).toLocaleDateString()}</td>
+                <tr key={`${item.user_id}-${index}`}>
+                  <td>{new Date(item.created_at).toLocaleDateString()}</td>
                   <td>
                     <span className={`badge badge--${item.category.toLowerCase()}`}>
                       {item.category}
@@ -86,7 +90,7 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
                   </td>
                   <td>{item.location}</td>
                   <td className="text-truncate">{item.description}</td>
-                  <td>{item.userId}</td>
+                  <td>{item.user_id}</td>
                   <td>
                     {item.image_data ? (
                       <button 

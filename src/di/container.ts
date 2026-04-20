@@ -27,7 +27,7 @@ const employeeRepository: EmployeeService = new EmployeeRepository(supabase);
 
 export const useAuth = () => authRepository;
 export const useRefunds = () => refundRepository;
-export const useMaintenances = () => maintenanceRepository;
+export const useMaintenance = () => maintenanceRepository;
 export const useFunctions = () => functionRepository;
 export const useLocations = () => locationRepository;
 export const useCoordinates = () => coordinateRepository;

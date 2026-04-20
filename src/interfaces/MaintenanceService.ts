@@ -3,10 +3,10 @@ export interface MaintenanceService {
 }
 
 export interface Maintenance {
-    userId: string,
+    user_id: string,
     category: string,
     description: string;
-    date: string;
+    created_at: string;
     location: string;
     image_data: string;
 }
