@@ -6,6 +6,7 @@
     --primary-color: rgb(var(--primary-rgb));
     --secondary-color: rgb(var(--secondary-rgb));
     --highlight-color: rgb(var(--highlight-rgb));
+    --border-color: rgb(34, 34, 34);
     
     font-size: 16px;
 }

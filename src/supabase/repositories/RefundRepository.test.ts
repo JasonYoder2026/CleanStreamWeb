@@ -8,10 +8,19 @@ describe("RefundRepository", () => {
     let repo: RefundRepository;
     let mockFrom: any;
     let mockSelect: any;
+    let mockGte: any;
 
     beforeEach(() => {
-        mockSelect = vi.fn();
-        mockFrom = vi.fn(() => ({ select: mockSelect }));
+        mockGte = vi.fn();
+
+        mockSelect = vi.fn(() => ({
+            gte: mockGte,
+        }));
+
+        mockFrom = vi.fn(() => ({
+            select: mockSelect,
+        }));
+
         mockClient = {
             from: mockFrom,
         } as unknown as SupabaseClient;
@@ -36,12 +45,13 @@ describe("RefundRepository", () => {
             },
         ];
 
-        mockSelect.mockResolvedValue({ data: mockData, error: null });
+        mockGte.mockResolvedValue({ data: mockData, error: null });
 
         const result = await repo.getRefunds();
 
         expect(mockFrom).toHaveBeenCalledWith("Refunds");
         expect(mockSelect).toHaveBeenCalled();
+        expect(mockGte).toHaveBeenCalled();
         expect(result).toEqual([
             {
                 id: "R1",
@@ -59,14 +69,14 @@ describe("RefundRepository", () => {
 
     it("should throw an error if Supabase returns an error", async () => {
         const mockError = new Error("Database error");
-        mockSelect.mockResolvedValue({ data: null, error: mockError });
+        mockGte.mockResolvedValue({ data: null, error: mockError });
 
         await expect(repo.getRefunds()).rejects.toThrow("Database error");
     });
 
     it("should throw an error if data is null without error", async () => {
-        mockSelect.mockResolvedValue({ data: null, error: null });
+        mockGte.mockResolvedValue({ data: null, error: null });
 
-        await expect(repo.getRefunds()).rejects.toBeNull();
+        await expect(repo.getRefunds()).rejects.toThrow();
     });
 });
