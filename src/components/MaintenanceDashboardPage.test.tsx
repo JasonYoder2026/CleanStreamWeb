@@ -1,395 +1,178 @@
-import { vi } from "vitest";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import MaintenanceDashboardPage from "./MaintenanceDashboardPage";
+import * as diContainer from "../di/container";
+import * as supabaseClient from "../supabase/client";
 
-vi.mock("../di/container", () => ({
-    useRefunds: () => ({
-        getRefunds: vi.fn(),
-    }),
-    useFunctions: () => ({
-        callFunction: vi.fn(),
-    }),
-}));
+// Mock the external hooks and clients
+vi.mock("../di/container");
+vi.mock("../supabase/client");
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
-import RefundsPage from "./RefundsDashboardPage";;
-import type { Refund } from "../interfaces/RefundService";
-
-const mockRefunds: Refund[] = [
-    {
-        id: "REF-001",
-        customerId: "CUST-001",
-        customerName: "John Doe",
-        transactionId: "TXN-001",
-        amount: 99.99,
-        reason: "Product defective",
-        date: "2024-01-15",
-        status: "pending",
-        attempts: 1,
-    },
-    {
-        id: "REF-002",
-        customerId: "CUST-002",
-        customerName: "Jane Smith",
-        transactionId: "TXN-002",
-        amount: 149.5,
-        reason: "Not as described",
-        date: "2024-01-14",
-        status: "approved",
-        attempts: 2,
-    },
-    {
-        id: "REF-003",
-        customerId: "CUST-003",
-        customerName: "Bob Johnson",
-        transactionId: "TXN-003",
-        amount: 75.0,
-        reason: "Changed my mind",
-        date: "2024-01-13",
-        status: "denied",
-        attempts: 1,
-    },
+const mockMaintenances = [
+  {
+    maint_id: 1,
+    user_id: "USER-001",
+    category: "Plumbing",
+    description: "Leaky faucet",
+    created_at: "2024-03-20T10:00:00Z",
+    location: "Kitchen",
+    image_data: "example.com/img.jpg", // Test the https prefix addition
+  },
+  {
+    maint_id: 2,
+    user_id: "USER-002",
+    category: "Electrical",
+    description: "Light out",
+    created_at: "2024-03-21T11:30:00Z",
+    location: "Hallway",
+    image_data: "https://example.com/direct.jpg", // Test direct URL
+  },
 ];
 
-describe("RefundsPage", () => {
-    const mockGetRefunds = vi.fn();
-    const mockCallFunction = vi.fn();
+describe("MaintenanceDashboardPage", () => {
+  const mockGetMaintenances = vi.fn();
+  const mockGetSession = vi.fn();
+  const mockFetch = vi.spyOn(global, 'fetch');
 
-    const mockRefundService = {
-        getRefunds: mockGetRefunds,
-    };
-
-    const mockFunctionService = {
-        callFunction: mockCallFunction,
-    };
-
-    beforeEach(() => {
-        vi.clearAllMocks();
-        mockGetRefunds.mockResolvedValue(mockRefunds);
-        mockCallFunction.mockResolvedValue({});
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Setup DI container mock
+    (diContainer.useMaintenance as any).mockReturnValue({
+      getMaintenances: mockGetMaintenances,
     });
 
-    it("renders the page title and subtitle", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        expect(screen.getByText("Refund Requests")).toBeInTheDocument();
-        expect(
-            screen.getByText("Review and respond to customer refund submissions")
-        ).toBeInTheDocument();
+    // Setup Supabase client mock
+    (supabaseClient.getSupabaseClient as any).mockReturnValue({
+      auth: { getSession: mockGetSession }
     });
 
-    it("loads and displays refunds", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
+    // Default window.confirm to true
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  });
 
-        await waitFor(() => {
-            expect(mockGetRefunds).toHaveBeenCalled();
-        });
+  it("renders loading state then data", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    render(<MaintenanceDashboardPage />);
 
-        expect(screen.getByText("REF-001")).toBeInTheDocument();
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-        expect(screen.getByText("$99.99")).toBeInTheDocument();
+    expect(screen.getByText(/loading maintenance reports/i)).toBeInTheDocument();
+    
+    const firstRow = await screen.findByText("Leaky faucet");
+    expect(firstRow).toBeInTheDocument();
+    expect(screen.queryByText(/loading maintenance reports/i)).not.toBeInTheDocument();
+  });
+
+  it("renders error state when fetch fails", async () => {
+    mockGetMaintenances.mockRejectedValue(new Error("Fetch failed"));
+    render(<MaintenanceDashboardPage />);
+
+    const errorMsg = await screen.findByText("Failed to load maintenance requests");
+    expect(errorMsg).toBeInTheDocument();
+  });
+
+  it("filters data when category pills are clicked", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    render(<MaintenanceDashboardPage />);
+
+    await screen.findByText("Leaky faucet");
+
+    // Click 'Plumbing' pill
+    const plumbingPill = screen.getByRole("button", { name: "Plumbing" });
+    fireEvent.click(plumbingPill);
+
+    expect(screen.getByText("Leaky faucet")).toBeInTheDocument();
+    expect(screen.queryByText("Light out")).not.toBeInTheDocument();
+
+    // Click 'All' to reset
+    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    expect(screen.getByText("Light out")).toBeInTheDocument();
+  });
+
+  it("handles the 'View' button with and without http prefix", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    const windowSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    render(<MaintenanceDashboardPage />);
+
+    const viewButtons = await screen.findAllByText("View");
+
+    // Test URL construction (adds https://)
+    fireEvent.click(viewButtons[0]);
+    expect(windowSpy).toHaveBeenCalledWith("https://example.com/img.jpg", "_blank");
+
+    // Test direct URL (keeps existing https://)
+    fireEvent.click(viewButtons[1]);
+    expect(windowSpy).toHaveBeenCalledWith("https://example.com/direct.jpg", "_blank");
+  });
+
+  it("successfully deletes a record", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    mockGetSession.mockResolvedValue({ data: { session: { access_token: 'token123' } } });
+    mockFetch.mockResolvedValue({ ok: true });
+
+    render(<MaintenanceDashboardPage />);
+    const deleteButtons = await screen.findAllByText("Delete");
+
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('delete-maintenance'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ id: "1" })
+        })
+      );
     });
 
-    it("displays loading state initially", () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
+    // Verify row is removed from UI
+    expect(screen.queryByText("Leaky faucet")).not.toBeInTheDocument();
+  });
 
-        expect(screen.getByText("Loading refunds...")).toBeInTheDocument();
+  it("aborts delete if window.confirm is cancelled", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    
+    render(<MaintenanceDashboardPage />);
+    const deleteButtons = await screen.findAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("handles delete failure (no session)", async () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+
+    render(<MaintenanceDashboardPage />);
+    const deleteButtons = await screen.findAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Could not delete record"));
     });
+  });
 
-    it("displays error state when fetch fails", async () => {
-        mockGetRefunds.mockRejectedValue(new Error("Network error"));
+  it("handles delete failure (server error 500)", async () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    mockGetSession.mockResolvedValue({ data: { session: { access_token: 'abc' } } });
+    mockFetch.mockResolvedValue({ ok: false, json: () => Promise.resolve({ error: 'fail' }) });
 
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
+    render(<MaintenanceDashboardPage />);
+    const deleteButtons = await screen.findAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
 
-        await waitFor(() => {
-            expect(screen.getByText("Failed to load refunds")).toBeInTheDocument();
-        });
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalled();
     });
+  });
 
-    it("filters refunds by status", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
+  it("displays empty state when no records match filter", async () => {
+    mockGetMaintenances.mockResolvedValue([]);
+    render(<MaintenanceDashboardPage />);
 
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        // Click pending filter
-        const pendingButton = screen.getByRole("button", { name: /Pending/ });
-        fireEvent.click(pendingButton);
-
-        expect(screen.getByText("REF-001")).toBeInTheDocument();
-        expect(screen.queryByText("REF-002")).not.toBeInTheDocument();
-        expect(screen.queryByText("REF-003")).not.toBeInTheDocument();
-    });
-
-    it("closes modal when clicking close button", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const closeButton = screen.getByRole("button", { name: "✕" });
-        fireEvent.click(closeButton);
-
-        await waitFor(() => {
-            expect(screen.queryByText("Respond to Refund")).not.toBeInTheDocument();
-        });
-    });
-
-    it("selects approve action in modal", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const approveButton = screen.getByRole("button", { name: "✓ Approve" });
-        fireEvent.click(approveButton);
-
-        expect(approveButton).toHaveClass("selected");
-    });
-
-    it("selects deny action in modal", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const denyButton = screen.getByRole("button", { name: "✕ Deny" });
-        fireEvent.click(denyButton);
-
-        expect(denyButton).toHaveClass("selected");
-    });
-
-    it("submits approval successfully", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const approveButton = screen.getByRole("button", { name: "✓ Approve" });
-        fireEvent.click(approveButton);
-
-        const submitButton = screen.getByRole("button", { name: "Submit" });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            expect(mockCallFunction).toHaveBeenCalledWith("approveRefund", {
-                transactionId: "TXN-001",
-                customerId: "CUST-001",
-                amount: 99.99,
-                note: "",
-            });
-        });
-
-        expect(screen.getByText("Refund REF-001 approved.")).toBeInTheDocument();
-    });
-
-    it("submits denial with note successfully", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const denyButton = screen.getByRole("button", { name: "✕ Deny" });
-        fireEvent.click(denyButton);
-
-        const noteInput = screen.getByPlaceholderText(
-            "Add a note to the customer..."
-        );
-        fireEvent.change(noteInput, {
-            target: { value: "Does not meet refund policy" },
-        });
-
-        const submitButton = screen.getByRole("button", { name: "Submit" });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            expect(mockCallFunction).toHaveBeenCalledWith("denyRefund", {
-                transactionId: "TXN-001",
-                customerId: "CUST-001",
-                amount: 99.99,
-                note: "Does not meet refund policy",
-            });
-        });
-
-        expect(screen.getByText("Refund REF-001 denied.")).toBeInTheDocument();
-    });
-
-    it("shows error toast when submission fails", async () => {
-        mockCallFunction.mockRejectedValue(new Error("API Error"));
-
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const approveButton = screen.getByRole("button", { name: "✓ Approve" });
-        fireEvent.click(approveButton);
-
-        const submitButton = screen.getByRole("button", { name: "Submit" });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            expect(
-                screen.getByText("Something went wrong. Please try again.")
-            ).toBeInTheDocument();
-        });
-    });
-
-    it("disables submit button when no action selected", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const submitButton = screen.getByRole("button", { name: "Submit" });
-        expect(submitButton).toBeDisabled();
-    });
-
-    it("shows Resolved label for non-pending refunds", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getAllByText("Resolved")).toHaveLength(2);
-        });
-    });
-
-
-    it("shows empty state when no refunds match filter", async () => {
-        mockGetRefunds.mockResolvedValue([]);
-
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("No refunds in this category.")).toBeInTheDocument();
-        });
-    });
-
-    it("updates refund status in table after successful submission", async () => {
-        render(
-            <RefundsPage
-                refundService={mockRefundService}
-                functionService={mockFunctionService}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText("REF-001")).toBeInTheDocument();
-        });
-
-        // Initially pending
-        const row = screen.getByText("REF-001").closest("tr");
-        expect(row).toHaveClass("status-row--pending");
-
-        const respondButton = screen.getByRole("button", { name: "Respond" });
-        fireEvent.click(respondButton);
-
-        const approveButton = screen.getByRole("button", { name: "✓ Approve" });
-        fireEvent.click(approveButton);
-
-        const submitButton = screen.getByRole("button", { name: "Submit" });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            const updatedRow = screen.getByText("REF-001").closest("tr");
-            expect(updatedRow).toHaveClass("status-row--approved");
-        });
-    });
+    const emptyMsg = await screen.findByText(/No maintenance records found/i);
+    expect(emptyMsg).toBeInTheDocument();
+  });
 });
