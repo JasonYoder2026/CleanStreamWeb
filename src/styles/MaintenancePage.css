@@ -133,9 +133,9 @@
   gap: 0.5rem;
 }
 
-.respond-btn {
+.view-btn {
   padding: 0.4rem 0.9rem;
-  background: #0f1117;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 7px;
@@ -145,31 +145,13 @@
   transition: background 0.15s;
 }
 
-.respond-btn:hover {
-  background: #374151;
-}
-
-.print-link-btn {
-  padding: 0.4rem 0.9rem;
-  background: #fff;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-  border-radius: 7px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.print-link-btn:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+.view-btn:hover {
+  background: #145987;
 }
 
 .no-attachment {
   color: #9ca3af;
   font-size: 0.8rem;
-  font-style: italic;
 }
 
 .empty-row {

@@ -26,7 +26,6 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
   try {
     setLoading(true);
     const data = await getMaintenances();
-    console.log("API Response Data:", data);
     setMaintenances(Array.isArray(data) ? data : []);
     setError(null);
   } catch (err) {
@@ -35,10 +34,6 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
     setLoading(false);
   }
 };
-
-  const handlePrintLink = (imageData: string) => {
-    console.log("Maintenance Image Link:", imageData);
-  };
 
   const filteredData = filter === "All" 
     ? maintenances 
@@ -105,16 +100,10 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
                     {item.image_data ? (
                       <div className="attachment-actions">
                         <button 
-                          className="respond-btn" 
+                          className="view-btn" 
                           onClick={() => window.open(item.image_data, '_blank')}
                         >
                           View
-                        </button>
-                        <button 
-                          className="print-link-btn" 
-                          onClick={() => handlePrintLink(item.image_data)}
-                        >
-                          Print Link
                         </button>
                       </div>
                     ) : (
