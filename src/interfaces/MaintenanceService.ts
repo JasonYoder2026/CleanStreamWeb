@@ -3,6 +3,7 @@ export interface MaintenanceService {
 }
 
 export interface Maintenance {
+    maint_id: string,
     user_id: string,
     category: string,
     description: string;

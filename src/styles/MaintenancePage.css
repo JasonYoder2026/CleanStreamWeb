@@ -165,3 +165,49 @@
   text-align: center;
   color: #6b7280;
 }
+
+.attachment-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.view-btn {
+  padding: 0.4rem 0.8rem;
+  background: #2073A9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.view-btn:hover {
+  opacity: 0.8;
+}
+
+.delete-btn {
+  padding: 0.4rem 0.8rem;
+  background: #fff;
+  color: #dc2626; /* Red color */
+  border: 1.5px solid #fee2e2;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.description-text {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

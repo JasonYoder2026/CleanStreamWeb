@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useMaintenance } from "../di/container"; 
+import { getSupabaseClient } from "../supabase/client";
 import type { Maintenance, MaintenanceService } from "../interfaces/MaintenanceService.ts";
 import "../styles/MaintenancePage.css";
 
@@ -7,12 +8,10 @@ interface MaintenanceDashboardProps {
   maintenanceService?: MaintenanceService;
 }
 
-const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({ 
-  maintenanceService: propService 
-}) => {
+const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
   const { getMaintenances } = useMaintenance();
-  const service = propService || getMaintenances();
-
+  const supabase = getSupabaseClient();
+  
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,17 +22,48 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
   }, []);
 
   const fetchMaintenances = async () => {
-  try {
-    setLoading(true);
-    const data = await getMaintenances();
-    setMaintenances(Array.isArray(data) ? data : []);
-    setError(null);
-  } catch (err) {
-    setError("Failed to load maintenance requests");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      const data = await getMaintenances();
+      setMaintenances(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load maintenance requests");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (maint_id: any) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
+
+      const idToSend = maint_id.toString();
+
+      const response = await fetch('https://dnuuhupoxjtwqzaqylvb.functions.supabase.co/delete-maintenance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ id: idToSend }), 
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Server Error Details:", errorData);
+        throw new Error("Delete failed");
+      }
+
+      setMaintenances(prev => prev.filter(item => item.maint_id.toString() !== idToSend));
+    } catch (err) {
+      console.error(err);
+      alert("Could not delete record. Check console for details.");
+    }
+  };
 
   const filteredData = filter === "All" 
     ? maintenances 
@@ -76,18 +106,18 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
               <th>Location</th>
               <th>Description</th>
               <th>User ID</th>
-              <th>Attachment</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.length > 0 ? (
               filteredData.map((item, index) => (
-                <tr key={`${item.user_id}-${index}`}>
+                <tr key={item.maint_id?.toString() || index}>
                   <td className="date-cell">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
                   <td>
-                    <span className={`category-badge badge--${item.category.toLowerCase()}`}>
+                    <span className={`category-badge badge--${item.category?.toLowerCase() || 'default'}`}>
                       {item.category}
                     </span>
                   </td>
@@ -97,18 +127,27 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
                   </td>
                   <td><span className="user-id-code">{item.user_id}</span></td>
                   <td>
-                    {item.image_data ? (
-                      <div className="attachment-actions">
+                    <div className="attachment-actions">
+                      {item.image_data && (
                         <button 
                           className="view-btn" 
-                          onClick={() => window.open(item.image_data, '_blank')}
+                          onClick={() => {
+                            const url = item.image_data.startsWith('http') 
+                              ? item.image_data 
+                              : `https://${item.image_data}`;
+                            window.open(url, '_blank');
+                          }}
                         >
                           View
                         </button>
-                      </div>
-                    ) : (
-                      <span className="no-attachment">No Image</span>
-                    )}
+                      )}
+                      <button 
+                        className="delete-btn" 
+                        onClick={() => handleDelete(item.maint_id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

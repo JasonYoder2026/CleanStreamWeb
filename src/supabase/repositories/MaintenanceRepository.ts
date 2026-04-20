@@ -16,6 +16,7 @@ export class MaintenanceRepository implements MaintenanceService {
         if (data === null) return [];
           
         return data.map((row: any) => ({
+            maint_id: row.maint_id,
             user_id: row.user_id,
             category: row.category,
             description: row.description,
