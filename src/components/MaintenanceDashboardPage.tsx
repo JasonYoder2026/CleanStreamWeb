@@ -23,17 +23,21 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
   }, []);
 
   const fetchMaintenances = async () => {
-    try {
-      setLoading(true);
-      const data = await getMaintenances();
-      setMaintenances(data);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load maintenance requests");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  try {
+    setLoading(true);
+    const data = await getMaintenances();
+    console.log("API Response Data:", data);
+    setMaintenances(Array.isArray(data) ? data : []);
+    setError(null);
+  } catch (err) {
+    setError("Failed to load maintenance requests");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handlePrintLink = (imageData: string) => {
+    console.log("Maintenance Image Link:", imageData);
   };
 
   const filteredData = filter === "All" 
@@ -46,19 +50,21 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
   if (error) return <div className="error-state">{error}</div>;
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
+    <div className="maintenance-page">
+      <header className="maintenance-header">
         <div>
-          <h1>Maintenance Dashboard</h1>
-          <p>Review and manage facility maintenance reports</p>
+          <h1 className="maintenance-title">Maintenance Dashboard</h1>
+          <p className="maintenance-subtitle">Review user requested maintenance reports</p>
         </div>
       </header>
 
-      <div className="filter-bar">
+      <hr className="header-divider" />
+
+      <div className="maintenance-filters">
         {categories.map(cat => (
           <button
             key={cat}
-            className={`filter-btn ${filter === cat ? "active" : ""}`}
+            className={`filter-pill ${filter === cat ? "active" : ""}`}
             onClick={() => setFilter(cat)}
           >
             {cat}
@@ -66,7 +72,7 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
         ))}
       </div>
 
-      <div className="table-wrapper">
+      <div className="maintenance-table-wrapper">
         <table className="maintenance-table">
           <thead>
             <tr>
@@ -82,32 +88,44 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = ({
             {filteredData.length > 0 ? (
               filteredData.map((item, index) => (
                 <tr key={`${item.user_id}-${index}`}>
-                  <td>{new Date(item.created_at).toLocaleDateString()}</td>
+                  <td className="date-cell">
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </td>
                   <td>
-                    <span className={`badge badge--${item.category.toLowerCase()}`}>
+                    <span className={`category-badge badge--${item.category.toLowerCase()}`}>
                       {item.category}
                     </span>
                   </td>
-                  <td>{item.location}</td>
-                  <td className="text-truncate">{item.description}</td>
-                  <td>{item.user_id}</td>
+                  <td className="location-text">{item.location}</td>
+                  <td className="description-cell">
+                    <div className="description-text">{item.description}</div>
+                  </td>
+                  <td><span className="user-id-code">{item.user_id}</span></td>
                   <td>
                     {item.image_data ? (
-                      <button 
-                        className="btn-view" 
-                        onClick={() => window.open(item.image_data, '_blank')}
-                      >
-                        View Image
-                      </button>
+                      <div className="attachment-actions">
+                        <button 
+                          className="respond-btn" 
+                          onClick={() => window.open(item.image_data, '_blank')}
+                        >
+                          View
+                        </button>
+                        <button 
+                          className="print-link-btn" 
+                          onClick={() => handlePrintLink(item.image_data)}
+                        >
+                          Print Link
+                        </button>
+                      </div>
                     ) : (
-                      <span className="text-muted">No Image</span>
+                      <span className="no-attachment">No Image</span>
                     )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="empty-state">
+                <td colSpan={6} className="empty-row">
                   No maintenance records found for this category.
                 </td>
               </tr>

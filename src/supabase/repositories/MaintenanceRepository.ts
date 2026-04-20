@@ -10,8 +10,7 @@ export class MaintenanceRepository implements MaintenanceService {
 
         const { data, error } = await this.client
             .from("Maintenance")
-            .select("user_id, category, description, created_at, location, image_data")
-            .gte("created_at", twoWeeksAgo.toISOString());
+            .select("*");
 
         if (error) throw error;
         if (data === null) return [];
