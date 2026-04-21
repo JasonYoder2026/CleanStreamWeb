@@ -35,6 +35,18 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
     }
   };
 
+  const formatImageUrl = (url: string) => {
+    return url.startsWith('http') ? url : `https://${url}`;
+  };
+
+  const handleViewAction = (item: Maintenance) => {
+    if (item.image_data) {
+      const fullUrl = formatImageUrl(item.image_data);
+      window.open(fullUrl, "_blank");
+    }
+    setSelectedItem(item);
+  };
+
   const handleDelete = async (maint_id: any) => {
     if (!window.confirm("Are you sure you want to delete this record?")) return;
 
@@ -111,11 +123,7 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
           <tbody>
             {filteredData.length > 0 ? (
               filteredData.map((item, index) => (
-                <tr 
-                  key={item.maint_id?.toString() || index}
-                  onClick={() => setSelectedItem(item)}
-                  className="clickable-row"
-                >
+                <tr key={item.maint_id?.toString() || index} className="clickable-row">
                   <td className="date-cell">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
@@ -131,6 +139,12 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
                   <td><span className="user-id-code">{item.user_id}</span></td>
                   <td>
                     <div className="attachment-actions">
+                      <button 
+                        className="view-btn"
+                        onClick={() => handleViewAction(item)}
+                      >
+                        View
+                      </button>
                       <button 
                         className="delete-btn" 
                         onClick={(e) => {
@@ -168,34 +182,29 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
                   <span className="modal-label">User ID:</span>
                   <p className="modal-value">{selectedItem.user_id}</p>
                 </div>
-                <br/>
                 <div className="modal-info-block">
                   <span className="modal-label">Date Submitted:</span>
                   <p className="modal-value">{new Date(selectedItem.created_at).toLocaleString()}</p>
                 </div>
-                <br/>
                 <div className="modal-info-block">
                   <span className="modal-label">Category:</span>
                   <p className="modal-value">{selectedItem.category}</p>
                 </div>
-                <br/>
                 <div className="modal-info-block">
                   <span className="modal-label">Location:</span>
                   <p className="modal-value">{selectedItem.location}</p>
                 </div>
               </div>
-              <br/>
               <div className="modal-info-block full-width">
                 <span className="modal-label">Full Description:</span>
                 <p className="modal-description-text">{selectedItem.description}</p>
               </div>
-              <br/>
               {selectedItem.image_data && (
                 <div className="modal-info-block full-width">
                   <span className="modal-label">Attachment:</span>
                   <div className="modal-image-container">
                     <img 
-                      src={selectedItem.image_data.startsWith('http') ? selectedItem.image_data : `https://${selectedItem.image_data}`} 
+                      src={formatImageUrl(selectedItem.image_data)} 
                       alt="Maintenance Evidence" 
                       className="modal-image"
                     />
