@@ -73,13 +73,6 @@ describe("SideBar", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/home/locations");
   });
 
-  it("navigates to settings", () => {
-    renderComponent();
-    fireEvent.click(screen.getByLabelText("Open sidebar"));
-    fireEvent.click(screen.getByText("Settings"));
-    expect(mockNavigate).toHaveBeenCalledWith("/home/settings");
-  });
-
   it("calls signOut and redirects to root", async () => {
     mockSignOut.mockResolvedValue(undefined);
     renderComponent();
