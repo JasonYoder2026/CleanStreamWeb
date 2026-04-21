@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/sideBar.css";
 import {
@@ -9,13 +9,20 @@ import {
   Settings,
   LogOut,
   Home,
+  PersonStanding,
 } from "lucide-react";
-import { useAuth } from "../di/container";
+import { useAuth, useLocations } from "../di/container";
 
 function SideBar() {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
+  const locationService = useLocations();
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    locationService.fetchUserRole().then((role) => setUserRole(role ?? ""));
+  }, []);
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -67,6 +74,14 @@ function SideBar() {
         >
           <Map /> Locations
         </button>
+        {userRole === "Owner" && (
+          <button
+            className="sidebar-item"
+            onClick={() => handleNav("/home/employees")}
+          >
+            <PersonStanding /> Employees
+          </button>
+        )}
         <button
           className="sidebar-item"
           onClick={() => handleNav("/home/settings")}

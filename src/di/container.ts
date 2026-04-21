@@ -10,6 +10,8 @@ import { LocationRepository } from "../supabase/repositories/LocationRepository"
 import type { CoordinateService } from "../interfaces/CoordinateService";
 import { CoordinateRepository } from "../geocodeMaps/repositories/CoordinateRepository";
 import { TransactionRepository } from "../supabase/repositories/TranscationRepository";
+import { EmployeeRepository } from "../supabase/repositories/EmployeeRepository";
+import type { EmployeeService } from "../interfaces/EmployeeService";
 import type { TrafficService } from "../interfaces/TrafficService";
 import { TrafficRepository } from "../supabase/repositories/TrafficRepository";
 
@@ -25,6 +27,7 @@ const transactionRepository: TransactionRepository = new TransactionRepository(
   supabase,
 );
 const trafficRepository: TrafficService = new TrafficRepository(supabase);
+const employeeRepository: EmployeeService = new EmployeeRepository(supabase);
 
 export const useAuth = () => authRepository;
 export const useRefunds = () => refundRepository;
@@ -32,4 +35,5 @@ export const useFunctions = () => functionRepository;
 export const useLocations = () => locationRepository;
 export const useCoordinates = () => coordinateRepository;
 export const useTransactions = () => transactionRepository;
+export const useEmployee = () => employeeRepository;
 export const useTraffic = () => trafficRepository;
