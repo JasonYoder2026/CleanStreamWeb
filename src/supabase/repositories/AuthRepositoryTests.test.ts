@@ -10,9 +10,9 @@ const mockSession = {
     access_token: "test-token",
 };
 
-const mockAdminProfile = { Roles: "Admin" };
-const mockOwnerProfile = { Roles: "Owner" };
-const mockUserProfile = { Roles: "User" };
+const mockAdminProfile = { roles: "Admin" };
+const mockOwnerProfile = { roles: "Owner" };
+const mockUserProfile = { roles: "User" };
 
 // ─── Mock Client Factory ─────────────────────────────────────────────────────
 

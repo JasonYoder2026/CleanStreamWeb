@@ -5,6 +5,7 @@ declare module "*.svg";
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_ANON_KEY: string;
+  readonly VITE_GEOCODEMAPS_KEY: string;
 }
 
 interface ImportMeta {

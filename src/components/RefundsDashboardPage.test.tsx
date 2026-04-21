@@ -1,6 +1,17 @@
+import { vi } from "vitest";
+
+vi.mock("../di/container", () => ({
+    useRefunds: () => ({
+        getRefunds: vi.fn(),
+    }),
+    useFunctions: () => ({
+        callFunction: vi.fn(),
+    }),
+}));
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import RefundsPage from "./RefundsDashboardPage";
+import { describe, it, expect, beforeEach } from "vitest";
+import RefundsPage from "./RefundsDashboardPage";;
 import type { Refund } from "../interfaces/RefundService";
 
 const mockRefunds: Refund[] = [
