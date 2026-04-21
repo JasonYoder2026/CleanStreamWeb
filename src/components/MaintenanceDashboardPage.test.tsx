@@ -4,7 +4,6 @@ import MaintenanceDashboardPage from "./MaintenanceDashboardPage";
 import * as diContainer from "../di/container";
 import * as supabaseClient from "../supabase/client";
 
-// Mocking the modules
 vi.mock("../di/container");
 vi.mock("../supabase/client");
 
@@ -37,12 +36,10 @@ describe("MaintenanceDashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Setup DI Container mock
     (diContainer.useMaintenance as any).mockReturnValue({
       getMaintenances: mockGetMaintenances,
     });
 
-    // Workaround: Mock the Supabase client return value so it doesn't use real .env
     (supabaseClient.getSupabaseClient as any).mockReturnValue({
       auth: { 
         getSession: mockGetSession 
@@ -60,22 +57,35 @@ describe("MaintenanceDashboardPage", () => {
     expect(firstRow).toBeInTheDocument();
   });
 
-  it("handles the 'View' button with and without http prefix", async () => {
+  it("opens modal when clicking a row", async () => {
+    mockGetMaintenances.mockResolvedValue(mockMaintenances);
+    render(<MaintenanceDashboardPage />);
+    
+    const row = await screen.findByText("Leaky faucet");
+    fireEvent.click(row);
+
+    expect(screen.getByText("Maintenance Detail")).toBeInTheDocument();
+    expect(screen.getByText("Full Description:")).toBeInTheDocument();
+    expect(screen.getAllByText("Leaky faucet").length).toBeGreaterThan(1);
+  });
+
+  it("handles the 'View Image' button specifically", async () => {
     mockGetMaintenances.mockResolvedValue(mockMaintenances);
     const windowSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<MaintenanceDashboardPage />);
 
-    const viewButtons = await screen.findAllByText("View");
+    const viewButtons = await screen.findAllByText("View Image");
 
     fireEvent.click(viewButtons[0]!);
     expect(windowSpy).toHaveBeenCalledWith("https://example.com/img.jpg", "_blank");
 
     fireEvent.click(viewButtons[1]!);
     expect(windowSpy).toHaveBeenCalledWith("https://example.com/direct.jpg", "_blank");
+    
+    expect(screen.queryByText("Maintenance Detail")).not.toBeInTheDocument();
   });
 
-  it("successfully deletes a record", async () => {
-    // 1. Setup mocks to match the Dashboard's manual fetch logic
+  it("successfully deletes a record and prevents modal open", async () => {
     mockGetMaintenances.mockResolvedValue(mockMaintenances);
     mockGetSession.mockResolvedValue({ 
       data: { session: { access_token: 'fake-token' } } 
@@ -85,10 +95,8 @@ describe("MaintenanceDashboardPage", () => {
     render(<MaintenanceDashboardPage />);
     const deleteButtons = await screen.findAllByText("Delete");
 
-    // 2. Trigger delete
     fireEvent.click(deleteButtons[0]!);
 
-    // 3. Assert that the FETCH was called (matching the Dashboard code)
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('delete-maintenance'),
@@ -100,6 +108,7 @@ describe("MaintenanceDashboardPage", () => {
     });
 
     expect(screen.queryByText("Leaky faucet")).not.toBeInTheDocument();
+    expect(screen.queryByText("Maintenance Detail")).not.toBeInTheDocument();
   });
 
   it("handles delete failure (no session)", async () => {

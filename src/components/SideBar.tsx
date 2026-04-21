@@ -62,11 +62,7 @@ function SideBar() {
         <button className="sidebar-item" onClick={() => handleNav("/home/maintenance")}>
           <Hammer /> Maintenance
         </button>
-        <button className="sidebar-item" onClick={() => handleNav("/home/locations")}></button>
-        <button
-          className="sidebar-item"
-          onClick={() => handleNav("/home/locations")}
-        >
+        <button className="sidebar-item" onClick={() => handleNav("/home/locations")}>
           <Map /> Locations
         </button>
         {userRole === "Owner" && (
