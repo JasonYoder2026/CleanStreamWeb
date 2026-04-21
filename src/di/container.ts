@@ -22,9 +22,6 @@ const authRepository: AuthService = new AuthRepository(supabase);
 const refundRepository: RefundService = new RefundRepository(supabase);
 const maintenanceRepository: MaintenanceService = new MaintenanceRepository(supabase);
 const functionRepository: FunctionService = new EdgeFunctionRepository(supabase);
-const functionRepository: FunctionService = new EdgeFunctionRepository(
-  supabase,
-);
 const locationRepository: LocationService = new LocationRepository(supabase);
 const coordinateRepository: CoordinateService = new CoordinateRepository();
 const transactionRepository: TransactionRepository = new TransactionRepository(
