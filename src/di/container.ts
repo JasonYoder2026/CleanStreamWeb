@@ -1,6 +1,6 @@
 import { AuthRepository } from "../supabase/repositories/AuthRepository";
 import type { AuthService } from "../interfaces/AuthService";
-import { getSupabaseClient } from '../supabase/client';
+import { getSupabaseClient } from "../supabase/client";
 import { RefundRepository } from "../supabase/repositories/RefundRepository";
 import type { RefundService } from "../interfaces/RefundService";
 import type { FunctionService } from "../interfaces/FunctionService";
@@ -12,14 +12,21 @@ import { CoordinateRepository } from "../geocodeMaps/repositories/CoordinateRepo
 import { TransactionRepository } from "../supabase/repositories/TranscationRepository";
 import { EmployeeRepository } from "../supabase/repositories/EmployeeRepository";
 import type { EmployeeService } from "../interfaces/EmployeeService";
+import type { TrafficService } from "../interfaces/TrafficService";
+import { TrafficRepository } from "../supabase/repositories/TrafficRepository";
 
 const supabase = getSupabaseClient();
 const authRepository: AuthService = new AuthRepository(supabase);
 const refundRepository: RefundService = new RefundRepository(supabase);
-const functionRepository: FunctionService = new EdgeFunctionRepository(supabase);
+const functionRepository: FunctionService = new EdgeFunctionRepository(
+  supabase,
+);
 const locationRepository: LocationService = new LocationRepository(supabase);
 const coordinateRepository: CoordinateService = new CoordinateRepository();
-const transactionRepository: TransactionRepository = new TransactionRepository(supabase);
+const transactionRepository: TransactionRepository = new TransactionRepository(
+  supabase,
+);
+const trafficRepository: TrafficService = new TrafficRepository(supabase);
 const employeeRepository: EmployeeService = new EmployeeRepository(supabase);
 
 export const useAuth = () => authRepository;
@@ -29,3 +36,4 @@ export const useLocations = () => locationRepository;
 export const useCoordinates = () => coordinateRepository;
 export const useTransactions = () => transactionRepository;
 export const useEmployee = () => employeeRepository;
+export const useTraffic = () => trafficRepository;
