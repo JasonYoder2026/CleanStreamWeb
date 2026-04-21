@@ -500,8 +500,22 @@ const mockLocations = [
 ];
 
 const mockMachines = [
-    { id: 1, Name: "Washer #1", Machine_type: "Washer", Status: "idle", Price: 2.50, Runtime: 30, Location_ID: 1 },
-    { id: 2, Name: "Dryer #1", Machine_type: "Dryer", Status: "running", Price: 1.75, Runtime: 45, Location_ID: 1 },
+    {
+        id: 1,
+        Name: "Washer #1",
+        Machine_type: "Washer",
+        Status: "idle",
+        Weight_kg: 30,
+        Location_ID: 1,
+    },
+    {
+        id: 2,
+        Name: "Dryer #1",
+        Machine_type: "Dryer",
+        Status: "running",
+        Weight_kg: 45,
+        Location_ID: 1,
+    },
 ];
 
 const getAddLocationBtn = () =>
@@ -603,7 +617,7 @@ describe("LocationsPage UI (Integration with mocks)", () => {
         });
     });
 
-    it("displays machine price formatted to two decimal places", async () => {
+    it("displays machine data correctly after selecting a location", async () => {
         const user = userEvent.setup();
         setupLocationService();
         render(<LocationsPage />);
@@ -614,10 +628,17 @@ describe("LocationsPage UI (Integration with mocks)", () => {
 
         await user.selectOptions(screen.getByRole("combobox"), "1");
 
-        await waitFor(() => {
-            expect(screen.getByText("$2.50")).toBeInTheDocument();
-            expect(screen.getByText("$1.75")).toBeInTheDocument();
-        });
+        const washerRow = await screen.findByText("Washer #1");
+        const dryerRow = await screen.findByText("Dryer #1");
+
+        const washerTr = washerRow.closest("tr")!;
+        const dryerTr = dryerRow.closest("tr")!;
+
+        expect(washerTr).toHaveTextContent("Washer");
+        expect(washerTr).toHaveTextContent("30 kg");
+
+        expect(dryerTr).toHaveTextContent("Dryer");
+        expect(dryerTr).toHaveTextContent("45 kg");
     });
 
     it("opens the Add Machine modal when the page button is clicked", async () => {
@@ -882,6 +903,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
     const setupLocationService = (overrides: Record<string, any> = {}) => {
         vi.mocked(useLocations).mockReturnValue({
             addMachines: vi.fn().mockResolvedValue({}),
+            calculatePrice: vi.fn().mockReturnValue(2.50),
             ...overrides,
         } as any);
     };
@@ -892,13 +914,18 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
 
     const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
         const modal = getModal();
+
         await user.type(within(modal).getByLabelText(/machine name/i), "Washer #5");
-        await user.clear(within(modal).getByLabelText(/price/i));
-        await user.type(within(modal).getByLabelText(/price/i), "3.00");
+
+        await user.clear(within(modal).getByLabelText(/weight/i));
+        await user.type(within(modal).getByLabelText(/weight/i), "3");
+
         await user.clear(within(modal).getByLabelText(/run time/i));
         await user.type(within(modal).getByLabelText(/run time/i), "30");
+
         await user.selectOptions(within(modal).getByLabelText(/machine type/i), "Washer");
         await user.selectOptions(within(modal).getByLabelText(/location/i), "1");
+
         await user.click(getSubmitBtn());
     };
 
@@ -914,8 +941,9 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         );
 
         const modal = getModal();
+
         expect(within(modal).getByLabelText(/machine name/i)).toBeInTheDocument();
-        expect(within(modal).getByLabelText(/price/i)).toBeInTheDocument();
+        expect(within(modal).getByLabelText(/weight/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/run time/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/machine type/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/location/i)).toBeInTheDocument();
@@ -970,6 +998,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
     it("shows success state after a valid submission", async () => {
         const user = userEvent.setup();
         setupLocationService();
+
         render(
             <AddMachineModal
                 isOpen
@@ -990,6 +1019,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         const user = userEvent.setup();
         const addMachines = vi.fn().mockResolvedValue({});
         setupLocationService({ addMachines });
+
         render(
             <AddMachineModal
                 isOpen
@@ -1017,6 +1047,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         const user = userEvent.setup();
         const onSuccess = vi.fn();
         setupLocationService();
+
         render(
             <AddMachineModal
                 isOpen
@@ -1036,7 +1067,10 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
 
     it("shows error banner when addMachines returns an error string", async () => {
         const user = userEvent.setup();
-        setupLocationService({ addMachines: vi.fn().mockResolvedValue("Machine name already taken") });
+        setupLocationService({
+            addMachines: vi.fn().mockResolvedValue("Machine name already taken"),
+        });
+
         render(
             <AddMachineModal
                 isOpen
@@ -1055,7 +1089,10 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
 
     it("shows error banner when addMachines throws", async () => {
         const user = userEvent.setup();
-        setupLocationService({ addMachines: vi.fn().mockRejectedValue(new Error("Network error")) });
+        setupLocationService({
+            addMachines: vi.fn().mockRejectedValue(new Error("Network error")),
+        });
+
         render(
             <AddMachineModal
                 isOpen
@@ -1076,6 +1113,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         const user = userEvent.setup();
         const onClose = vi.fn();
         setupLocationService();
+
         render(
             <AddMachineModal
                 isOpen
@@ -1094,6 +1132,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
         const user = userEvent.setup();
         const onClose = vi.fn();
         setupLocationService();
+
         render(
             <AddMachineModal
                 isOpen
@@ -1112,6 +1151,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
     it("resets form after closing", async () => {
         const user = userEvent.setup();
         setupLocationService();
+
         const { rerender } = render(
             <AddMachineModal
                 isOpen
@@ -1158,6 +1198,7 @@ describe("EmployeePage UI (Integration with mocks)", () => {
                            } = {}) => {
         vi.mocked(useLocations).mockReturnValue({
             getLocations: vi.fn().mockResolvedValue(locations),
+            fetchUserRole: vi.fn().mockResolvedValue("Owner"),
         } as any);
 
         vi.mocked(useEmployee).mockReturnValue({
@@ -1207,6 +1248,7 @@ describe("EmployeePage UI (Integration with mocks)", () => {
 
         vi.mocked(useLocations).mockReturnValue({
             getLocations: vi.fn().mockResolvedValue(mockLocations),
+            fetchUserRole: vi.fn().mockResolvedValue("Owner"),
         } as any);
 
         vi.mocked(useEmployee).mockReturnValue({
