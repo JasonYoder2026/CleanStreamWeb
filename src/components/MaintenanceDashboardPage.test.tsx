@@ -1,19 +1,5 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-
-vi.hoisted(() => {
-  const dummyEnv = {
-    VITE_SUPABASE_URL: "https://placeholder.supabase.co",
-    VITE_SUPABASE_ANON_KEY: "placeholder-key",
-  };
-  
-  if (typeof process !== "undefined") {
-    Object.assign(process.env, dummyEnv);
-  } else {
-    (globalThis as any).process = { env: dummyEnv };
-  }
-});
-
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import MaintenanceDashboardPage from "./MaintenanceDashboardPage";
 import * as diContainer from "../di/container";
 import * as supabaseClient from "../supabase/client";
