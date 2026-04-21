@@ -14,18 +14,14 @@ export class MaintenanceRepository implements MaintenanceService {
       .select("*")
       .gte("created_at", filterDate);
 
-    // 1. Check for explicit Supabase errors
     if (error) {
       throw new Error(error.message);
     }
 
-    // 2. Fix for the failing test: Throw error if data is null
-    // If your test expects a rejection, we cannot return [].
     if (!data) {
       throw new Error("No data returned from server");
     }
 
-    // 3. Map the data
     return data.map((row: any) => ({
       maint_id: row.maint_id,
       user_id: row.user_id,
