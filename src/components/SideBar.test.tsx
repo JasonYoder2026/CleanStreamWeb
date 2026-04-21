@@ -8,7 +8,10 @@ const mockSignOut = vi.fn();
 const mockFetchUserRole = vi.fn().mockResolvedValue("");
 
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  const actual =
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
+    );
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -98,13 +101,17 @@ describe("SideBar", () => {
     mockFetchUserRole.mockResolvedValue("Owner");
     renderComponent();
     fireEvent.click(screen.getByLabelText("Open sidebar"));
-    await waitFor(() => expect(screen.getByText("Employees")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Employees")).toBeInTheDocument(),
+    );
   });
 
   it("hides Employees button for non-Owner role", async () => {
     mockFetchUserRole.mockResolvedValue("Employee");
     renderComponent();
     fireEvent.click(screen.getByLabelText("Open sidebar"));
-    await waitFor(() => expect(screen.queryByText("Employees")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText("Employees")).not.toBeInTheDocument(),
+    );
   });
 });
