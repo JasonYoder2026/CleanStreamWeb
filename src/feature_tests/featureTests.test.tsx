@@ -603,23 +603,6 @@ describe("LocationsPage UI (Integration with mocks)", () => {
         });
     });
 
-    it("displays machine price formatted to two decimal places", async () => {
-        const user = userEvent.setup();
-        setupLocationService();
-        render(<LocationsPage />);
-
-        await waitFor(() => {
-            expect(screen.getByRole("option", { name: "Downtown Laundromat" })).toBeInTheDocument();
-        });
-
-        await user.selectOptions(screen.getByRole("combobox"), "1");
-
-        await waitFor(() => {
-            expect(screen.getByText("$2.50")).toBeInTheDocument();
-            expect(screen.getByText("$1.75")).toBeInTheDocument();
-        });
-    });
-
     it("opens the Add Machine modal when the page button is clicked", async () => {
         const user = userEvent.setup();
         setupLocationService();
@@ -893,8 +876,8 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
     const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
         const modal = getModal();
         await user.type(within(modal).getByLabelText(/machine name/i), "Washer #5");
-        await user.clear(within(modal).getByLabelText(/price/i));
-        await user.type(within(modal).getByLabelText(/price/i), "3.00");
+        await user.clear(within(modal).getByLabelText(/weight/i));
+        await user.type(within(modal).getByLabelText(/weight/i), "5.0");
         await user.clear(within(modal).getByLabelText(/run time/i));
         await user.type(within(modal).getByLabelText(/run time/i), "30");
         await user.selectOptions(within(modal).getByLabelText(/machine type/i), "Washer");
@@ -915,7 +898,7 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
 
         const modal = getModal();
         expect(within(modal).getByLabelText(/machine name/i)).toBeInTheDocument();
-        expect(within(modal).getByLabelText(/price/i)).toBeInTheDocument();
+        expect(within(modal).getByLabelText(/weight/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/run time/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/machine type/i)).toBeInTheDocument();
         expect(within(modal).getByLabelText(/location/i)).toBeInTheDocument();
