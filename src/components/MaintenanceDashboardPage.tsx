@@ -39,15 +39,18 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
     return url.startsWith('http') ? url : `https://${url}`;
   };
 
-  const handleViewAction = (item: Maintenance) => {
-    if (item.image_data) {
-      const fullUrl = formatImageUrl(item.image_data);
-      window.open(fullUrl, "_blank");
-    }
+  const handleViewImage = (e: React.MouseEvent, url: string) => {
+    e.stopPropagation();
+    const fullUrl = formatImageUrl(url);
+    window.open(fullUrl, "_blank");
+  };
+
+  const handleRowClick = (item: Maintenance) => {
     setSelectedItem(item);
   };
 
-  const handleDelete = async (maint_id: any) => {
+  const handleDelete = async (e: React.MouseEvent, maint_id: any) => {
+    e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this record?")) return;
 
     try {
@@ -123,7 +126,11 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
           <tbody>
             {filteredData.length > 0 ? (
               filteredData.map((item, index) => (
-                <tr key={item.maint_id?.toString() || index} className="clickable-row">
+                <tr 
+                  key={item.maint_id?.toString() || index} 
+                  className="clickable-row"
+                  onClick={() => handleRowClick(item)}
+                >
                   <td className="date-cell">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
@@ -139,18 +146,17 @@ const MaintenanceDashboardPage: React.FC<MaintenanceDashboardProps> = () => {
                   <td><span className="user-id-code">{item.user_id}</span></td>
                   <td>
                     <div className="attachment-actions">
-                      <button 
-                        className="view-btn"
-                        onClick={() => handleViewAction(item)}
-                      >
-                        View
-                      </button>
+                      {item.image_data && (
+                        <button 
+                          className="view-btn"
+                          onClick={(e) => handleViewImage(e, item.image_data)}
+                        >
+                          View Image
+                        </button>
+                      )}
                       <button 
                         className="delete-btn" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(item.maint_id);
-                        }}
+                        onClick={(e) => handleDelete(e, item.maint_id)}
                       >
                         Delete
                       </button>
