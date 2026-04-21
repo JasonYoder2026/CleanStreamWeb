@@ -211,3 +211,82 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Table Row Interactivity */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: #f8f9fa;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.modal-section {
+  margin-bottom: 1.2rem;
+}
+
+.modal-section label {
+  font-weight: bold;
+  color: #666;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.full-description {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.modal-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
