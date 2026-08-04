@@ -6,7 +6,14 @@ export class CortinaVendRepository implements CortinaVendService {
 
   private async invoke<T>(route: string, body: Record<string, unknown>): Promise<T> {
     const { data, error } = await this.client.functions.invoke(`cortina-vend/${route}`, { body });
-    if (error) throw new Error(error.message);
+    if (error) {
+      const context = (error as { context?: Response }).context;
+      if (context) {
+        const details = await context.clone().json().catch(() => null) as { error?: unknown } | null;
+        if (typeof details?.error === "string") throw new Error(details.error);
+      }
+      throw new Error(error.message);
+    }
     if (!data || typeof data !== "object") throw new Error("Payment service returned an invalid response.");
     const response = data as Record<string, unknown>;
     if (response.error) throw new Error(String(response.error));
