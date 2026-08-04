@@ -6,6 +6,12 @@ import MaintenancePage from "./components/MaintenanceDashboardPage";
 import LocationsPage from "./components/LocationsDashboardPage";
 import DashboardPage from "./components/DashboardPage";
 import EmployeePage from "./components/EmployeeDashboardPage";
+import CortinaPayPage from "./components/CortinaPayPage";
+import PublicLayout from "./components/PublicLayout";
+import PublicHomePage from "./components/PublicHomePage";
+import PublicLegalPage from "./components/PublicLegalPage";
+import AccountDeletionPage from "./components/AccountDeletionPage";
+import SupportPage from "./components/SupportPage";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -14,7 +20,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<PublicHomePage />} />
+          <Route path="/privacy" element={<PublicLegalPage type="privacy" />} />
+          <Route path="/terms" element={<PublicLegalPage type="terms" />} />
+          <Route path="/account-deletion" element={<AccountDeletionPage />} />
+          <Route path="/support" element={<SupportPage />} />
+        </Route>
+        <Route path="/admin" element={<LoginPage />} />
+        <Route path="/pay" element={<CortinaPayPage />} />
         <Route
           path="/home/"
           element={

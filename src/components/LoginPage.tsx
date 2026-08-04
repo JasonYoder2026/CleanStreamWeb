@@ -3,6 +3,7 @@ import '../styles/Login.css'
 import { useAuth } from "../di/container";
 import { AuthenticationResponse} from "../supabase/enum/authentication_responses";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/Logo-web.png";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -67,7 +68,7 @@ function Login() {
 
   return (
       <div className="login-container" onKeyDown={handleKeyPress}>
-        <img src="src\assets\Logo.png" className="logo" alt="Logo" />
+        <img src={logo} className="logo" alt="Clean Stream Laundry Solutions" />
 
         {error && <div className="error-message">{error}</div>}
 

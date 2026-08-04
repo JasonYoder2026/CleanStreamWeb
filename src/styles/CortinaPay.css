@@ -1,0 +1,35 @@
+.cortina-pay-shell { min-height: 100vh; background: #f4f7f8; color: #17242c; font-family: Inter, system-ui, sans-serif; display: grid; grid-template-rows: auto 1fr auto; }
+.cortina-pay-header { min-height: 72px; padding: 14px 24px; background: #fff; border-bottom: 1px solid #d8e1e5; display: flex; align-items: center; }
+.cortina-pay-header { gap: 10px; }
+.cortina-pay-header img { width: 42px; height: 42px; object-fit: contain; }
+.cortina-pay-header strong { color: #153d54; font-size: 1.05rem; }
+.cortina-pay-panel { width: min(100% - 32px, 520px); align-self: center; justify-self: center; background: #fff; border: 1px solid #d8e1e5; border-radius: 8px; padding: 28px; box-shadow: 0 8px 24px rgba(20, 48, 64, .08); }
+.cortina-machine-heading { display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8eb; padding-bottom: 20px; }
+.cortina-machine-heading > svg { width: 42px; height: 42px; color: var(--primary-color); }
+.cortina-machine-heading p, .cortina-machine-heading h1 { margin: 0; }
+.cortina-machine-heading p { color: #59707d; font-size: .82rem; font-weight: 700; text-transform: uppercase; }
+.cortina-machine-heading h1 { font-size: 1.55rem; line-height: 1.25; }
+.washer-price, .dryer-price-control { padding: 26px 0 20px; }
+.washer-price { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; }
+.washer-price span { color: #59707d; font-weight: 600; }
+.washer-price strong, .dryer-price-control strong { font-size: 2.1rem; color: #112f40; }
+.washer-price p { grid-column: 1 / -1; color: #526873; line-height: 1.5; margin-top: 8px; }
+.dryer-price-control > div:first-child { display: flex; justify-content: space-between; align-items: baseline; }
+.dryer-price-control span { color: #526873; font-weight: 600; }
+.dryer-price-control input { width: 100%; accent-color: var(--primary-color); margin: 24px 0 8px; }
+.dryer-range { display: flex; justify-content: space-between; font-size: .8rem; }
+.cortina-payment-actions { display: grid; gap: 10px; }
+.cortina-payment-actions button { min-height: 48px; border: 0; border-radius: 6px; background: var(--primary-color); color: #fff; font: inherit; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 9px; cursor: pointer; }
+.cortina-payment-actions button.secondary { background: #fff; color: #183b4f; border: 1px solid #9fb1bb; }
+.cortina-payment-actions svg { width: 20px; }
+.loyalty-note { color: #526873; font-size: .85rem; line-height: 1.45; margin-top: 18px; text-align: center; }
+.cortina-state { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
+.cortina-state svg { width: 48px; height: 48px; color: var(--primary-color); }
+.cortina-state h1, .cortina-state p { margin: 0; }
+.cortina-state p { max-width: 360px; color: #526873; line-height: 1.5; }
+.cortina-state.success svg { color: #16834f; }
+.cortina-state.failed svg { color: #b24435; }
+.spin { animation: cortina-spin 1s linear infinite; }
+@keyframes cortina-spin { to { transform: rotate(360deg); } }
+.cortina-pay-shell footer { padding: 20px; text-align: center; color: #637985; font-size: .78rem; }
+@media (max-width: 540px) { .cortina-pay-panel { width: 100%; align-self: stretch; border-width: 1px 0; border-radius: 0; box-shadow: none; padding: 24px 20px; } }

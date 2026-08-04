@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { LocationService, Location, Machine } from "../../interfaces/LocationService";
+import type { CortinaMachineConfig, LocationService, Location, Machine, WasherSizeRate } from "../../interfaces/LocationService";
 import { useAuth } from "../../di/container";
 
 export class LocationRepository implements LocationService {
@@ -35,7 +35,7 @@ export class LocationRepository implements LocationService {
     getMachines = async (locationId: string): Promise<Machine[]> => {
     const { data: getMachines, error: getMachinesError } = await this.client
         .from("Machines")
-        .select("*")
+        .select("*, cortina_machine_config(*)")
         .eq("Location_ID", parseInt(locationId));
 
     if (getMachinesError) {
@@ -43,8 +43,51 @@ export class LocationRepository implements LocationService {
         throw new Error(getMachinesError.message);
     }
 
-    return getMachines as Machine[];
+    return (getMachines ?? []).map((machine) => ({
+        ...machine,
+        cortina_machine_config: Array.isArray(machine.cortina_machine_config)
+            ? machine.cortina_machine_config[0] ?? null
+            : machine.cortina_machine_config,
+    })) as Machine[];
 };
+
+    getWasherSizeRates = async (locationId: number): Promise<WasherSizeRate[]> => {
+        const { data, error } = await this.client
+            .from("washer_size_rates")
+            .select("*")
+            .eq("location_id", locationId)
+            .order("capacity_kg");
+        if (error) throw new Error(error.message);
+        return data as WasherSizeRate[];
+    }
+
+    saveWasherSizeRate = async (rate: WasherSizeRate): Promise<void|string> => {
+        const values = {
+            location_id: rate.location_id,
+            size_label: rate.size_label.trim(),
+            capacity_kg: rate.capacity_kg,
+            price_cents: rate.price_cents,
+            is_active: rate.is_active,
+            review_required: rate.review_required,
+        };
+        const query = rate.id
+            ? this.client.from("washer_size_rates").update(values).eq("id", rate.id)
+            : this.client.from("washer_size_rates").insert(values);
+        const { error } = await query;
+        return error?.message;
+    }
+
+    saveCortinaConfig = async (config: CortinaMachineConfig): Promise<void|string> => {
+        const { error } = await this.client.from("cortina_machine_config").update({
+            nayax_terminal_id: config.nayax_terminal_id,
+            nayax_uniqr: config.nayax_uniqr,
+            pulse_line_number: config.pulse_line_number,
+            environment: config.environment,
+            is_enabled: config.is_enabled,
+            review_required: config.review_required,
+        }).eq("machine_id", config.machine_id);
+        return error?.message;
+    }
 
     addMachines = async (machine: Machine): Promise<void|string>  => {
         const { error: addMachinesError } = await this.client
@@ -56,7 +99,8 @@ export class LocationRepository implements LocationService {
             Status: machine.Status, 
             Location_ID: machine.Location_ID, 
             Machine_type: machine.Machine_type,
-            Weight_kg: machine.Weight_kg});
+            Weight_kg: machine.Weight_kg,
+            washer_size_rate_id: machine.washer_size_rate_id ?? null});
 
         if (addMachinesError) {
         console.error(addMachinesError);
@@ -115,11 +159,6 @@ export class LocationRepository implements LocationService {
           }else{
             return null
           }
-      }
-
-    calculatePrice = (kilograms: number) => {
-        const pounds = kilograms * 2.20462;
-        return Math.floor(pounds / 10) * 10;
       }
 
     deleteMachine = async (machineID: number): Promise<void> => {

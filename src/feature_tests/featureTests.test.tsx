@@ -550,6 +550,9 @@ describe("LocationsPage UI (Integration with mocks)", () => {
             addLocations: vi.fn().mockResolvedValue({}),
             addMachines: vi.fn().mockResolvedValue({}),
             fetchUserRole: vi.fn().mockResolvedValue("Owner"),
+            getWasherSizeRates: vi.fn().mockResolvedValue([]),
+            saveWasherSizeRate: vi.fn().mockResolvedValue(undefined),
+            saveCortinaConfig: vi.fn().mockResolvedValue(undefined),
             ...overrides,
         } as any);
     };
@@ -903,7 +906,9 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
     const setupLocationService = (overrides: Record<string, any> = {}) => {
         vi.mocked(useLocations).mockReturnValue({
             addMachines: vi.fn().mockResolvedValue({}),
-            calculatePrice: vi.fn().mockReturnValue(2.50),
+            getWasherSizeRates: vi.fn().mockResolvedValue([
+                { id: 12, location_id: 1, size_label: "Small", capacity_kg: 3, price_cents: 250, is_active: true, review_required: false },
+            ]),
             ...overrides,
         } as any);
     };
@@ -925,6 +930,8 @@ describe("AddMachineModal UI (Integration with mocks)", () => {
 
         await user.selectOptions(within(modal).getByLabelText(/machine type/i), "Washer");
         await user.selectOptions(within(modal).getByLabelText(/location/i), "1");
+        await waitFor(() => within(modal).getByRole("option", { name: "Small · 3 kg · $2.50" }));
+        await user.selectOptions(within(modal).getByLabelText(/washer size/i), "12");
 
         await user.click(getSubmitBtn());
     };

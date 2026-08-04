@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "../styles/LocationPageModals.css";
 import { useLocations } from "../di/container";
-import type { Machine } from "../interfaces/LocationService";
+import type { Machine, WasherSizeRate } from "../interfaces/LocationService";
 import { X, Check, AlertCircle } from "lucide-react";
 
 interface LocationOption {
@@ -14,6 +14,7 @@ interface MachineFormData {
   machineRunTime: number;
   machineType: string;
   machineLocation: number | "";
+  washerSizeRateId: number | "";
 }
 interface AddMachineModalProps {
   isOpen: boolean;
@@ -29,17 +30,28 @@ const emptyForm = (): MachineFormData => ({
   machineRunTime: 0,
   machineType: "",
   machineLocation: "",
+  washerSizeRateId: "",
 });
 
 export default function AddMachineModal({ isOpen, onClose, onSuccess, machineTypes, locations }: AddMachineModalProps) {
   const [form, setForm] = useState<MachineFormData>(emptyForm());
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [washerRates, setWasherRates] = useState<WasherSizeRate[]>([]);
   const locationService = useLocations();
 
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setForm((prev) => ({ ...prev, [id]: value }));
+    if (id === "machineLocation") {
+      setForm((prev) => ({ ...prev, washerSizeRateId: "" }));
+      void locationService.getWasherSizeRates(Number(value)).then((rates) =>
+        setWasherRates(rates.filter((rate) => rate.is_active && !rate.review_required)),
+      ).catch((error) => setErrorMessage(error instanceof Error ? error.message : "Unable to load washer rates."));
+    }
+  };
 
   const handleClose = () => {
     setForm(emptyForm());
@@ -51,15 +63,21 @@ export default function AddMachineModal({ isOpen, onClose, onSuccess, machineTyp
   const handleSubmit = async () => {
     setErrorMessage(null);
     try {
+      const selectedRate = washerRates.find((rate) => rate.id === Number(form.washerSizeRateId));
+      if (form.machineType === "Washer" && !selectedRate) {
+        setErrorMessage("Select a reviewed washer size rate.");
+        return;
+      }
       const machine: Machine = {
         id: 0,
         Name: form.machineName,
-        Weight_kg: form.machineWeight,
-        Runtime: form.machineRunTime,
+        Weight_kg: selectedRate?.capacity_kg ?? Number(form.machineWeight),
+        Runtime: form.machineType === "Dryer" ? 5 : Number(form.machineRunTime),
         Status: "idle",
         Location_ID: Number(form.machineLocation),
         Machine_type: form.machineType,
-        Price: locationService.calculatePrice(form.machineWeight),
+        Price: selectedRate ? selectedRate.price_cents / 100 : 0.25,
+        washer_size_rate_id: selectedRate?.id ?? null,
       };
       const result = await locationService.addMachines(machine);
       if (typeof result === "string") {
@@ -115,6 +133,17 @@ export default function AddMachineModal({ isOpen, onClose, onSuccess, machineTyp
             </label>
             <input className="form-input" id="machineName" type="text" placeholder="e.g. Washer #3" value={form.machineName} onChange={handleChange} />
           </div>
+
+          {form.machineType === "Washer" && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="washerSizeRateId">Washer Size</label>
+              <select className="form-select" id="washerSizeRateId" value={form.washerSizeRateId} onChange={handleChange}>
+                <option value="" disabled>Select a configured size…</option>
+                {washerRates.map((rate) => <option key={rate.id} value={rate.id}>{rate.size_label} · {rate.capacity_kg} kg · ${(rate.price_cents / 100).toFixed(2)}</option>)}
+              </select>
+              {washerRates.length === 0 && <span className="field-note">Add and review a washer rate for this location first.</span>}
+            </div>
+          )}
 
           <div className="form-row">
             {[

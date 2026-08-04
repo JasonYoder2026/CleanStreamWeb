@@ -302,6 +302,7 @@ describe("LocationRepository", () => {
                 Location_ID: mockNewMachine.Location_ID,
                 Machine_type: mockNewMachine.Machine_type,
                 Weight_kg: mockNewMachine.Weight_kg,
+                washer_size_rate_id: null,
             });
         });
     });
@@ -541,38 +542,24 @@ describe("LocationRepository", () => {
         });
     });
 
-    // ── calculatePrice ────────────────────────────────────────────────────────
+    describe("washer size rates", () => {
+        it("loads rates for a location in capacity order", async () => {
+            const rates = [{ id: 1, location_id: 4, size_label: "Large", capacity_kg: 18, price_cents: 425, is_active: true, review_required: false }];
+            const order = vi.fn().mockResolvedValue({ data: rates, error: null });
+            const eq = vi.fn().mockReturnValue({ order });
+            const select = vi.fn().mockReturnValue({ eq });
+            const from = vi.fn().mockReturnValue({ select });
+            const repo = new LocationRepository({ from } as unknown as SupabaseClient);
 
-    describe("calculatePrice", () => {
-        it("converts kg to lbs and rounds down to the nearest 10", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            expect(repo.calculatePrice(10)).toBe(20);
+            await expect(repo.getWasherSizeRates(4)).resolves.toEqual(rates);
+            expect(eq).toHaveBeenCalledWith("location_id", 4);
+            expect(order).toHaveBeenCalledWith("capacity_kg");
         });
 
-        it("returns 0 for very small weights that fall below 10 lbs", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            expect(repo.calculatePrice(1)).toBe(0);
-        });
-
-        it("handles weights that convert to exactly a multiple of 10 lbs", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            const kgForExactly10lbs = 10 / 2.20462;
-            expect(repo.calculatePrice(kgForExactly10lbs)).toBe(10);
-        });
-
-        it("floors correctly when lbs is just under a boundary", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            expect(repo.calculatePrice(22)).toBe(40);
-        });
-
-        it("handles 0 kg input", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            expect(repo.calculatePrice(0)).toBe(0);
-        });
-
-        it("scales correctly for large weights", () => {
-            const repo = new LocationRepository({} as SupabaseClient);
-            expect(repo.calculatePrice(100)).toBe(220);
+        it("surfaces rate query errors", async () => {
+            const order = vi.fn().mockResolvedValue({ data: null, error: { message: "Rate fetch failed" } });
+            const client = { from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ order }) }) }) } as unknown as SupabaseClient;
+            await expect(new LocationRepository(client).getWasherSizeRates(4)).rejects.toThrow("Rate fetch failed");
         });
     });
 });

@@ -5,12 +5,12 @@ import AddMachineModal from "./AddMachineModal";
 // ─── Mock useLocations ────────────────────────────────────────────────────────
 
 const mockAddMachines = vi.fn();
-const mockCalculatePrice = vi.fn();
+const mockGetWasherSizeRates = vi.fn();
 
 vi.mock("../di/container", () => ({
   useLocations: () => ({
     addMachines: mockAddMachines,
-    calculatePrice: mockCalculatePrice,
+    getWasherSizeRates: mockGetWasherSizeRates,
   }),
 }));
 
@@ -33,7 +33,9 @@ describe("AddMachineModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAddMachines.mockResolvedValue(undefined);
-    mockCalculatePrice.mockReturnValue(20);
+    mockGetWasherSizeRates.mockResolvedValue([
+      { id: 10, location_id: 1, size_label: "Large", capacity_kg: 12, price_cents: 400, is_active: true, review_required: false },
+    ]);
   });
 
   // ── Visibility ────────────────────────────────────────────────────────────
@@ -156,7 +158,7 @@ describe("AddMachineModal", () => {
   // ── Submission ────────────────────────────────────────────────────────────
 
   describe("submission", () => {
-    const fillForm = () => {
+    const fillForm = async () => {
       fireEvent.change(screen.getByLabelText("Machine Name"), {
         target: { value: "Washer #3", id: "machineName" },
       });
@@ -172,11 +174,15 @@ describe("AddMachineModal", () => {
       fireEvent.change(screen.getByLabelText("Location"), {
         target: { value: "1", id: "machineLocation" },
       });
+      await waitFor(() => screen.getByRole("option", { name: "Large · 12 kg · $4.00" }));
+      fireEvent.change(screen.getByLabelText("Washer Size"), {
+        target: { value: "10", id: "washerSizeRateId" },
+      });
     };
 
     it("calls addMachines with the correct machine data on submit", async () => {
       render(<AddMachineModal {...defaultProps} />);
-      fillForm();
+      await fillForm();
 
       fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
 
@@ -187,32 +193,28 @@ describe("AddMachineModal", () => {
             Status: "idle",
             Location_ID: 1,
             Machine_type: "Washer",
-            Weight_kg: "12",
+            Weight_kg: 12,
+            washer_size_rate_id: 10,
           }),
         );
       });
     });
 
-    it("calls calculatePrice with the entered weight on submit", async () => {
+    it("loads washer sizes for the selected location", async () => {
       render(<AddMachineModal {...defaultProps} />);
-      fillForm();
+      await fillForm();
 
-      fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
-
-      await waitFor(() => {
-        expect(mockCalculatePrice).toHaveBeenCalledWith("12");
-      });
+      expect(mockGetWasherSizeRates).toHaveBeenCalledWith(1);
     });
 
-    it("sets machine Price from calculatePrice result", async () => {
-      mockCalculatePrice.mockReturnValue(40);
+    it("sets machine price from the selected size rate", async () => {
       render(<AddMachineModal {...defaultProps} />);
-      fillForm();
+      await fillForm();
 
       fireEvent.click(screen.getByRole("button", { name: "Add Machine" }));
 
       await waitFor(() => {
-        expect(mockAddMachines).toHaveBeenCalledWith(expect.objectContaining({ Price: 40 }));
+        expect(mockAddMachines).toHaveBeenCalledWith(expect.objectContaining({ Price: 4 }));
       });
     });
 

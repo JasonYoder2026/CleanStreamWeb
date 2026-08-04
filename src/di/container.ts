@@ -16,26 +16,36 @@ import { EmployeeRepository } from "../supabase/repositories/EmployeeRepository"
 import type { EmployeeService } from "../interfaces/EmployeeService";
 import type { TrafficService } from "../interfaces/TrafficService";
 import { TrafficRepository } from "../supabase/repositories/TrafficRepository";
+import type { CortinaVendService } from "../interfaces/CortinaVendService";
+import { CortinaVendRepository } from "../supabase/repositories/CortinaVendRepository";
 
-const supabase = getSupabaseClient();
-const authRepository: AuthService = new AuthRepository(supabase);
-const refundRepository: RefundService = new RefundRepository(supabase);
-const maintenanceRepository: MaintenanceService = new MaintenanceRepository(supabase);
-const functionRepository: FunctionService = new EdgeFunctionRepository(supabase);
-const locationRepository: LocationService = new LocationRepository(supabase);
 const coordinateRepository: CoordinateService = new CoordinateRepository();
-const transactionRepository: TransactionRepository = new TransactionRepository(
-  supabase,
-);
-const trafficRepository: TrafficService = new TrafficRepository(supabase);
-const employeeRepository: EmployeeService = new EmployeeRepository(supabase);
+let authRepository: AuthService | undefined;
+let refundRepository: RefundService | undefined;
+let maintenanceRepository: MaintenanceService | undefined;
+let functionRepository: FunctionService | undefined;
+let locationRepository: LocationService | undefined;
+let transactionRepository: TransactionRepository | undefined;
+let trafficRepository: TrafficService | undefined;
+let employeeRepository: EmployeeService | undefined;
+let cortinaVendRepository: CortinaVendService | undefined;
 
-export const useAuth = () => authRepository;
-export const useRefunds = () => refundRepository;
-export const useMaintenance = () => maintenanceRepository;
-export const useFunctions = () => functionRepository;
-export const useLocations = () => locationRepository;
+export const useAuth = () =>
+  authRepository ??= new AuthRepository(getSupabaseClient());
+export const useRefunds = () =>
+  refundRepository ??= new RefundRepository(getSupabaseClient());
+export const useMaintenance = () =>
+  maintenanceRepository ??= new MaintenanceRepository(getSupabaseClient());
+export const useFunctions = () =>
+  functionRepository ??= new EdgeFunctionRepository(getSupabaseClient());
+export const useLocations = () =>
+  locationRepository ??= new LocationRepository(getSupabaseClient());
 export const useCoordinates = () => coordinateRepository;
-export const useTransactions = () => transactionRepository;
-export const useEmployee = () => employeeRepository;
-export const useTraffic = () => trafficRepository;
+export const useTransactions = () =>
+  transactionRepository ??= new TransactionRepository(getSupabaseClient());
+export const useEmployee = () =>
+  employeeRepository ??= new EmployeeRepository(getSupabaseClient());
+export const useTraffic = () =>
+  trafficRepository ??= new TrafficRepository(getSupabaseClient());
+export const useCortinaVend = () =>
+  cortinaVendRepository ??= new CortinaVendRepository(getSupabaseClient());

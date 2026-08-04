@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import "../styles/LocationsPage.css";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, QrCode, Trash2 } from "lucide-react";
 import { useLocations } from "../di/container";
 import type { Location, Machine } from "../interfaces/LocationService";
 import AddMachineModal from "./AddMachineModal";
 import AddLocationModal from "./AddLocationModal";
 import DeleteMachineModal from "./DeleteMachineModal";
+import WasherRatesPanel from "./WasherRatesPanel";
+import CortinaConfigModal from "./CortinaConfigModal";
 
 const MACHINE_TYPES = ["Washer", "Dryer"];
 
@@ -17,6 +19,7 @@ function LocationsPage() {
   const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [machineToDelete, setMachineToDelete] = useState<Machine | null>(null);
+  const [machineToConfigure, setMachineToConfigure] = useState<Machine | null>(null);
   const locationService = useLocations();
 
   const fetchMachines = async (locationId: string) => {
@@ -91,6 +94,8 @@ function LocationsPage() {
 
       <div className="seperation-line"></div>
 
+      {userRole === "Owner" && selectedLocation && <WasherRatesPanel locationId={Number(selectedLocation)} onChanged={() => fetchMachines(selectedLocation)} />}
+
       <div className="machine-description">
         <p>Machines:</p>
         {userRole == "Owner" && (
@@ -111,13 +116,14 @@ function LocationsPage() {
               <th>Type</th>
               <th>Status</th>
               <th>Weight</th>
+              {userRole == "Owner" && <th>Payments</th>}
               {userRole == "Owner" && <th>Delete</th>}
             </tr>
           </thead>
           <tbody>
             {machineData.length === 0 && (
               <tr>
-                <td colSpan={4} className="machine-empty-row">
+                <td colSpan={userRole === "Owner" ? 6 : 4} className="machine-empty-row">
                   No machines at this location.
                 </td>
               </tr>
@@ -130,6 +136,7 @@ function LocationsPage() {
                   <span>{machine.Status}</span>
                 </td>
                 <td>{machine.Weight_kg} kg</td>
+                {userRole == "Owner" && <td><button onClick={() => setMachineToConfigure(machine)} className="icon-action" title="Cortina and QR setup" aria-label={`Configure payments for ${machine.Name}`}><QrCode /></button></td>}
                 {userRole == "Owner" && (
                   <td>
                     <button onClick={() => setMachineToDelete(machine)} className="delete-button">
@@ -156,6 +163,7 @@ function LocationsPage() {
       <AddLocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onSuccess={() => fetchLocations()} />
 
       <DeleteMachineModal machine={machineToDelete} onConfirm={handleDeleteMachine} onCancel={() => setMachineToDelete(null)} />
+      <CortinaConfigModal machine={machineToConfigure} onClose={() => setMachineToConfigure(null)} onSuccess={() => fetchMachines(selectedLocation)} />
     </div>
   );
 }

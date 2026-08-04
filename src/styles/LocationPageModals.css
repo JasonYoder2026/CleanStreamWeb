@@ -156,3 +156,18 @@
   color: #b91c1c;
   font-size: 0.875rem;
 }
+
+.field-note { color: #687b85; font-size: .78rem; line-height: 1.4; }
+.cortina-config-modal { max-width: 560px; max-height: calc(100vh - 32px); overflow-y: auto; }
+.cortina-config-modal .top-section span { color: #667983; font-size: .82rem; }
+.config-toggle { align-self: end; min-height: 42px; flex: 1; }
+.qr-tools { margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.qr-tools button svg, .qr-tools a svg { width: 18px; height: 18px; }
+.qr-tools img { width: min(220px, 100%); height: auto; border: 1px solid #d6dfe3; }
+.qr-tools a { text-decoration: none; gap: .45rem; }
+
+@media (max-width: 540px) {
+  .modal-card { margin: 12px; padding: 1rem; }
+  .form-row { flex-direction: column; }
+  .config-toggle { align-self: flex-start; min-height: auto; }
+}

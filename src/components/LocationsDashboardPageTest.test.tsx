@@ -28,6 +28,14 @@ vi.mock("./DeleteMachineModal", () => ({
     ) : null,
 }));
 
+vi.mock("./WasherRatesPanel", () => ({
+  default: () => <div data-testid="washer-rates-panel" />,
+}));
+
+vi.mock("./CortinaConfigModal", () => ({
+  default: () => null,
+}));
+
 // ─── Mock useLocations ────────────────────────────────────────────────────────
 
 const mockGetLocations = vi.fn();
