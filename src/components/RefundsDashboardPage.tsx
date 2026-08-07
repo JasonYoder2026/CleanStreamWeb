@@ -14,6 +14,12 @@ interface ModalState {
   action: "approve" | "deny" | null;
 }
 
+interface RefundResolutionResponse {
+  success: boolean;
+  status: RefundStatus;
+  notificationWarning?: string;
+}
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
     month: "short",
@@ -81,31 +87,35 @@ export default function RefundsPage({
     setSubmitting(true);
 
     try {
-      const {transactionId, customerId, amount} = modal.refund;
-      await callFunction(
+      const expectedStatus = actionSelected === "approve" ? "approved" : "denied";
+      const result = await callFunction<RefundResolutionResponse>(
         actionSelected === "approve" ? "approveRefund" : "denyRefund",
-        { transactionId, customerId, amount, note: reason }
+        { refundId: modal.refund.refundId, note: reason }
       );
 
+      if (!result.success || result.status !== expectedStatus) {
+        throw new Error("The loyalty credit request was not resolved");
+      }
 
       setRefunds((prev) =>
         prev.map((r) =>
           r.id === modal.refund.id
-            ? { ...r, status: actionSelected === "approve" ? "approved" : "denied" }
+            ? { ...r, status: expectedStatus }
             : r
         )
       );
 
-
       showToast(
-        actionSelected === "approve"
-          ? `Refund ${modal.refund.id} approved.`
-          : `Refund ${modal.refund.id} denied.`,
-        "success"
+        result.notificationWarning
+          ? `Request ${modal.refund.id} was resolved, but the customer email could not be sent.`
+          : actionSelected === "approve"
+            ? `Loyalty credit ${modal.refund.id} approved.`
+            : `Loyalty credit ${modal.refund.id} denied.`,
+        result.notificationWarning ? "error" : "success"
       );
       closeModal();
     } catch {
-      showToast("Something went wrong. Please try again.", "error");
+      showToast("The loyalty credit was not completed. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -125,8 +135,8 @@ export default function RefundsPage({
       {/* Header */}
       <div className="refunds-header">
         <div>
-          <h1 className="refunds-title">Refund Requests</h1>
-          <p className="refunds-subtitle">Review and respond to customer refund submissions</p>
+          <h1 className="refunds-title">Loyalty Credit Requests</h1>
+          <p className="refunds-subtitle">Review requests to return value to a customer's loyalty balance</p>
         </div>
       </div>
 
@@ -154,7 +164,7 @@ export default function RefundsPage({
             <tr>
               <th>ID</th>
               <th>Customer</th>
-              <th>Refund Attempts</th>
+              <th>Credit Requests</th>
               <th>Amount</th>
               <th>Reason</th>
               <th>Date</th>
@@ -166,7 +176,7 @@ export default function RefundsPage({
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={8} className="empty-row">
-                  No refunds in this category.
+                  No loyalty credit requests in this category.
                 </td>
               </tr>
             )}
@@ -211,7 +221,7 @@ export default function RefundsPage({
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h2 className="modal-title">Respond to Refund</h2>
+                <h2 className="modal-title">Respond to Loyalty Credit Request</h2>
                 <p className="modal-refund-id">{modal.refund.id}</p>
               </div>
               <button className="modal-close" onClick={closeModal}>✕</button>

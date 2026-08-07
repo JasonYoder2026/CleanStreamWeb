@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FunctionService } from "../../interfaces/FunctionService";
 
 export class EdgeFunctionRepository implements FunctionService {
@@ -6,18 +6,20 @@ export class EdgeFunctionRepository implements FunctionService {
 
     callFunction = async <T = unknown>(
         name: string,
-        params?: any
+        params?: Record<string, unknown>
     ): Promise<T> => {
-        try {
-            const response = await this.client.functions.invoke(name, {
-                body: JSON.stringify(params),
-            });
+        const { data, error } = await this.client.functions.invoke(name, {
+            body: params,
+        });
 
-            if (response.data != undefined) {
-                return response.data as T;
-            } else return null as T;
-        } catch (err: any) {
-            return err as T;
+        if (error) {
+            throw error;
         }
+
+        if (data === undefined || data === null) {
+            throw new Error(`${name} returned no data`);
+        }
+
+        return data as T;
     }
 }

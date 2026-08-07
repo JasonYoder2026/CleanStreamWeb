@@ -54,6 +54,7 @@ describe("RefundRepository", () => {
         expect(mockGte).toHaveBeenCalled();
         expect(result).toEqual([
             {
+                refundId: 1,
                 id: "R1",
                 customerName: "John Doe",
                 customerId: "U123",

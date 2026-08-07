@@ -16,6 +16,7 @@ import type { Refund } from "../interfaces/RefundService";
 
 const mockRefunds: Refund[] = [
     {
+        refundId: 1,
         id: "REF-001",
         customerId: "CUST-001",
         customerName: "John Doe",
@@ -27,6 +28,7 @@ const mockRefunds: Refund[] = [
         attempts: 1,
     },
     {
+        refundId: 2,
         id: "REF-002",
         customerId: "CUST-002",
         customerName: "Jane Smith",
@@ -38,6 +40,7 @@ const mockRefunds: Refund[] = [
         attempts: 2,
     },
     {
+        refundId: 3,
         id: "REF-003",
         customerId: "CUST-003",
         customerName: "Bob Johnson",
@@ -65,7 +68,10 @@ describe("RefundsPage", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGetRefunds.mockResolvedValue(mockRefunds);
-        mockCallFunction.mockResolvedValue({});
+        mockCallFunction.mockImplementation((name: string) => Promise.resolve({
+            success: true,
+            status: name === "approveRefund" ? "approved" : "denied",
+        }));
     });
 
     it("renders the page title and subtitle", async () => {
@@ -76,9 +82,9 @@ describe("RefundsPage", () => {
             />
         );
 
-        expect(screen.getByText("Refund Requests")).toBeInTheDocument();
+        expect(screen.getByText("Loyalty Credit Requests")).toBeInTheDocument();
         expect(
-            screen.getByText("Review and respond to customer refund submissions")
+            screen.getByText("Review requests to return value to a customer's loyalty balance")
         ).toBeInTheDocument();
     });
 
@@ -165,7 +171,7 @@ describe("RefundsPage", () => {
         fireEvent.click(closeButton);
 
         await waitFor(() => {
-            expect(screen.queryByText("Respond to Refund")).not.toBeInTheDocument();
+            expect(screen.queryByText("Respond to Loyalty Credit Request")).not.toBeInTheDocument();
         });
     });
 
@@ -234,14 +240,12 @@ describe("RefundsPage", () => {
 
         await waitFor(() => {
             expect(mockCallFunction).toHaveBeenCalledWith("approveRefund", {
-                transactionId: "TXN-001",
-                customerId: "CUST-001",
-                amount: 99.99,
+                refundId: 1,
                 note: "",
             });
         });
 
-        expect(screen.getByText("Refund REF-001 approved.")).toBeInTheDocument();
+        expect(screen.getByText("Loyalty credit REF-001 approved.")).toBeInTheDocument();
     });
 
     it("submits denial with note successfully", async () => {
@@ -274,14 +278,12 @@ describe("RefundsPage", () => {
 
         await waitFor(() => {
             expect(mockCallFunction).toHaveBeenCalledWith("denyRefund", {
-                transactionId: "TXN-001",
-                customerId: "CUST-001",
-                amount: 99.99,
+                refundId: 1,
                 note: "Does not meet refund policy",
             });
         });
 
-        expect(screen.getByText("Refund REF-001 denied.")).toBeInTheDocument();
+        expect(screen.getByText("Loyalty credit REF-001 denied.")).toBeInTheDocument();
     });
 
     it("shows error toast when submission fails", async () => {
@@ -309,9 +311,12 @@ describe("RefundsPage", () => {
 
         await waitFor(() => {
             expect(
-                screen.getByText("Something went wrong. Please try again.")
+                screen.getByText("The loyalty credit was not completed. Please try again.")
             ).toBeInTheDocument();
         });
+
+        const row = screen.getAllByText("REF-001")[0]?.closest("tr");
+        expect(row).toHaveClass("status-row--pending");
     });
 
     it("disables submit button when no action selected", async () => {
@@ -358,7 +363,7 @@ describe("RefundsPage", () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText("No refunds in this category.")).toBeInTheDocument();
+            expect(screen.getByText("No loyalty credit requests in this category.")).toBeInTheDocument();
         });
     });
 

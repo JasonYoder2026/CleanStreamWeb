@@ -5,6 +5,7 @@ export interface RefundService {
 export type RefundStatus = "pending" | "approved" | "denied";
 
 export interface Refund {
+    refundId: number;
     id: string;
     customerName: string;
     customerId: string,

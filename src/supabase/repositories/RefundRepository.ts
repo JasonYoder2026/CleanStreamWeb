@@ -29,6 +29,7 @@ export class RefundRepository implements RefundService {
         if (error || data === null) throw error;
          
         return data.map((row: any)=> ({
+            refundId: row.refund_id,
             id: ("R" + row.refund_id),
             customerName: row.profiles.full_name,
             customerId: row.profiles.id,

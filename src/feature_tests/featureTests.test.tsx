@@ -43,7 +43,8 @@ describe("RefundsPage UI (Integration with mocks)", () => {
         const user = userEvent.setup();
 
         const mockRefund = {
-            id: 1,
+            refundId: 1,
+            id: "R1",
             transactionId: 130,
             customerId: "acf8e5f3-03f5-4e2a-a120-fcd10ca64e1a",
             customerName: "John Doe",
@@ -55,7 +56,7 @@ describe("RefundsPage UI (Integration with mocks)", () => {
         };
 
         const getRefunds = vi.fn().mockResolvedValue([mockRefund]);
-        const callFunction = vi.fn().mockResolvedValue({});
+        const callFunction = vi.fn().mockResolvedValue({ success: true, status: "approved" });
 
         render(
             <RefundsPage
@@ -80,9 +81,7 @@ describe("RefundsPage UI (Integration with mocks)", () => {
 
         await waitFor(() => {
             expect(callFunction).toHaveBeenCalledWith("approveRefund", {
-                transactionId: 130,
-                customerId: "acf8e5f3-03f5-4e2a-a120-fcd10ca64e1a",
-                amount: 2,
+                refundId: 1,
                 note: "",
             });
         });
@@ -102,7 +101,8 @@ describe("RefundsPage UI (Integration with mocks)", () => {
         const user = userEvent.setup();
 
         const mockRefund = {
-            id: 2,
+            refundId: 2,
+            id: "R2",
             transactionId: 200,
             customerId: "user-2",
             customerName: "Jane Smith",
@@ -114,7 +114,7 @@ describe("RefundsPage UI (Integration with mocks)", () => {
         };
 
         const getRefunds = vi.fn().mockResolvedValue([mockRefund]);
-        const callFunction = vi.fn().mockResolvedValue({});
+        const callFunction = vi.fn().mockResolvedValue({ success: true, status: "denied" });
 
         render(
             <RefundsPage
@@ -139,9 +139,7 @@ describe("RefundsPage UI (Integration with mocks)", () => {
 
         await waitFor(() => {
             expect(callFunction).toHaveBeenCalledWith("denyRefund", {
-                transactionId: 200,
-                customerId: "user-2",
-                amount: 5,
+                refundId: 2,
                 note: "",
             });
         });
