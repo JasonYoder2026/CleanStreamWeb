@@ -29,19 +29,30 @@ describe("CortinaPayPage", () => {
     expect(service.quote).toHaveBeenCalledWith("public-token", undefined);
   });
 
-  it("lets a dryer customer choose quarter-dollar increments", async () => {
+  it("lets a dryer customer choose one of six time products", async () => {
     service.quote.mockResolvedValue({
       machineId: 2, machineName: "Dryer 2", machineType: "dryer",
       washerSizeLabel: null, amountCents: 150,
-      dryer: { incrementCents: 25, minutesPerIncrement: 5, minimumCents: 25, maximumCents: 450, defaultCents: 150 },
+      dryer: {
+        defaultCents: 150,
+        options: [
+          { minutes: 10, amountCents: 50 },
+          { minutes: 20, amountCents: 100 },
+          { minutes: 30, amountCents: 150 },
+          { minutes: 40, amountCents: 200 },
+          { minutes: 60, amountCents: 300 },
+          { minutes: 90, amountCents: 450 },
+        ],
+      },
     });
     render(<MemoryRouter initialEntries={["/pay?machine=public-token"]}><CortinaPayPage /></MemoryRouter>);
 
-    const slider = await screen.findByLabelText("Dryer amount");
+    const fortyMinutes = await screen.findByRole("button", { name: /40 min.*\$2\.00/ });
     expect(screen.getByText("30 minutes")).toBeInTheDocument();
-    fireEvent.change(slider, { target: { value: "200" } });
+    expect(screen.getAllByRole("button", { pressed: false })).toHaveLength(5);
+    fireEvent.click(fortyMinutes);
     expect(screen.getByText("40 minutes")).toBeInTheDocument();
-    expect(screen.getByText("$2.00")).toBeInTheDocument();
+    expect(fortyMinutes).toHaveAttribute("aria-pressed", "true");
   });
 
   it("resumes a paid browser session without exposing machine identifiers", async () => {
@@ -59,7 +70,17 @@ describe("CortinaPayPage", () => {
     service.quote.mockResolvedValue({
       machineId: 2, machineName: "Dryer 2", machineType: "dryer",
       washerSizeLabel: null, amountCents: 150,
-      dryer: { incrementCents: 25, minutesPerIncrement: 5, minimumCents: 25, maximumCents: 450, defaultCents: 150 },
+      dryer: {
+        defaultCents: 150,
+        options: [
+          { minutes: 10, amountCents: 50 },
+          { minutes: 20, amountCents: 100 },
+          { minutes: 30, amountCents: 150 },
+          { minutes: 40, amountCents: 200 },
+          { minutes: 60, amountCents: 300 },
+          { minutes: 90, amountCents: 450 },
+        ],
+      },
     });
     service.payWithWallet.mockResolvedValue({ sessionId: "wallet-1", accessToken: "wallet-secret" });
     service.status.mockResolvedValue({ status: "started", dryer_minutes: 30 });

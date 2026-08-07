@@ -103,7 +103,9 @@ function CortinaPayPage() {
     }
   };
 
-  const dryerMinutes = quote?.dryer ? (amountCents / quote.dryer.incrementCents) * quote.dryer.minutesPerIncrement : null;
+  const selectedDryerOption = quote?.dryer?.options.find(
+    (option) => option.amountCents === amountCents,
+  );
 
   return (
     <main className="cortina-pay-shell">
@@ -125,13 +127,26 @@ function CortinaPayPage() {
             </div>
             {quote.dryer ? (
               <div className="dryer-price-control">
-                <div><strong>{money(amountCents)}</strong><span>{dryerMinutes} minutes</span></div>
-                <input aria-label="Dryer amount" type="range" min={quote.dryer.minimumCents} max={quote.dryer.maximumCents} step={quote.dryer.incrementCents} value={amountCents} onChange={(event) => {
-                  cardRequestId.current = null;
-                  walletRequestId.current = null;
-                  setAmountCents(Number(event.target.value));
-                }} />
-                <div className="dryer-range"><span>{money(quote.dryer.minimumCents)}</span><span>{money(quote.dryer.maximumCents)}</span></div>
+                <div><strong>{money(amountCents)}</strong><span>{selectedDryerOption?.minutes} minutes</span></div>
+                <div className="dryer-option-grid" role="group" aria-label="Dryer time">
+                  {quote.dryer.options.map((option) => (
+                    <button
+                      key={option.minutes}
+                      type="button"
+                      aria-pressed={option.amountCents === amountCents}
+                      className={option.amountCents === amountCents ? "selected" : ""}
+                      onClick={() => {
+                        cardRequestId.current = null;
+                        walletRequestId.current = null;
+                        setAmountCents(option.amountCents);
+                      }}
+                    >
+                      <span>{option.minutes} min</span>
+                      <strong>{money(option.amountCents)}</strong>
+                    </button>
+                  ))}
+                </div>
+                <p>$0.25 per 5 minutes</p>
               </div>
             ) : (
               <div className="washer-price"><span>Total</span><strong>{money(amountCents)}</strong><p>Choose temperature and cycle settings on the washer after it starts.</p></div>

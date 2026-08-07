@@ -16,8 +16,12 @@
 .washer-price p { grid-column: 1 / -1; color: #526873; line-height: 1.5; margin-top: 8px; }
 .dryer-price-control > div:first-child { display: flex; justify-content: space-between; align-items: baseline; }
 .dryer-price-control span { color: #526873; font-weight: 600; }
-.dryer-price-control input { width: 100%; accent-color: var(--primary-color); margin: 24px 0 8px; }
-.dryer-range { display: flex; justify-content: space-between; font-size: .8rem; }
+.dryer-option-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
+.dryer-option-grid button { min-width: 0; min-height: 64px; padding: 8px 4px; border: 1px solid #9fb1bb; border-radius: 6px; background: #fff; color: #183b4f; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.dryer-option-grid button.selected { border-color: var(--primary-color); background: #e8f3f8; box-shadow: inset 0 0 0 1px var(--primary-color); }
+.dryer-option-grid button span { color: inherit; font-size: .9rem; }
+.dryer-option-grid button strong { color: inherit; font-size: 1rem; }
+.dryer-price-control > p { margin: 12px 0 0; color: #526873; font-size: .82rem; text-align: center; }
 .cortina-payment-actions { display: grid; gap: 10px; }
 .cortina-payment-actions button { min-height: 48px; border: 0; border-radius: 6px; background: var(--primary-color); color: #fff; font: inherit; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 9px; cursor: pointer; }
 .cortina-payment-actions button.secondary { background: #fff; color: #183b4f; border: 1px solid #9fb1bb; }

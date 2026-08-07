@@ -5,11 +5,8 @@ export interface CortinaQuote {
   washerSizeLabel: string | null;
   amountCents: number;
   dryer: {
-    incrementCents: number;
-    minutesPerIncrement: number;
-    minimumCents: number;
-    maximumCents: number;
     defaultCents: number;
+    options: Array<{ minutes: number; amountCents: number }>;
   } | null;
 }
 
