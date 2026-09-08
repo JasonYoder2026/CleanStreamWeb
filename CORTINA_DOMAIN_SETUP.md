@@ -2,6 +2,16 @@
 
 The public payment route is `/pay?machine=<public_machine_token>`. Configure the production host to rewrite `/pay` to `index.html` so direct browser visits load the React app.
 
+## Production host
+
+- Vercel team: `CleanStreamLaundry`
+- Vercel project: `clean-stream-web`
+- Production domain: `https://cleanstreamlaundry.com`
+- `www.cleanstreamlaundry.com` redirects permanently to the apex domain.
+- GoDaddy A record `@` points to Vercel at `216.198.79.1`.
+
+The domain, `/pay` SPA route, and Android association file were verified live on September 8, 2026. Only the apex website record was changed in GoDaddy; Outlook/Microsoft mail, autodiscover, MX, TXT, SIP, and related records were left unchanged.
+
 ## iOS
 
 Deploy `public/.well-known/apple-app-site-association` at:
