@@ -1,5 +1,5 @@
 import { Link, Outlet } from "react-router-dom";
-import { LogIn, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import icon from "../assets/Icon-web.png";
 import "../styles/PublicSite.css";
 
@@ -14,8 +14,7 @@ function PublicLayout() {
         <nav aria-label="Primary navigation">
           <Link to="/#services">Services</Link>
           <Link to="/#locations">Locations</Link>
-          <Link to="/support">Support</Link>
-          <Link className="staff-link" to="/admin"><LogIn />Staff</Link>
+          <Link className="public-support-link" to="/support">Support</Link>
         </nav>
       </header>
 
