@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cleanstreamlaundrysolutions.clean_stream_laundry_app",
+      "sha256_cert_fingerprints": [
+        "C4:B8:FD:84:6C:77:2A:E4:A8:0C:53:96:E9:A3:BB:2B:EE:2E:3E:31:9E:AA:21:C6:82:96:B9:C8:6B:DE:37:FC"
+      ]
+    }
+  }
+]

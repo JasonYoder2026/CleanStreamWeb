@@ -12,9 +12,11 @@ It must return HTTP 200 with `application/json` and no redirect. The checked-in 
 
 ## Android
 
-1. Obtain the SHA-256 fingerprint for every production Play/App Signing certificate.
-2. Replace the placeholder in `assetlinks.json.template`.
-3. Deploy the completed file as `public/.well-known/assetlinks.json`.
-4. Confirm it returns HTTP 200 with `application/json` and no redirect.
+The deployed `public/.well-known/assetlinks.json` currently contains the Clean Stream test-build certificate so the connected Samsung can verify `/pay` during live-device testing.
 
-Do not deploy the placeholder file. Android verified links remain incomplete until the release fingerprint is supplied.
+Before the Play release:
+
+1. Obtain the SHA-256 fingerprint for every production Play/App Signing certificate.
+2. Add each production fingerprint to `sha256_cert_fingerprints` without removing the test fingerprint until device testing is complete.
+3. Confirm the file returns HTTP 200 with `application/json` and no redirect.
+4. Remove the test fingerprint after production builds have replaced the test build on field devices.
