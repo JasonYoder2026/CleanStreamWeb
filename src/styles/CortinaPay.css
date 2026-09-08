@@ -1,39 +1,855 @@
-.cortina-pay-shell { min-height: 100vh; background: #f4f7f8; color: #17242c; font-family: Inter, system-ui, sans-serif; display: grid; grid-template-rows: auto 1fr auto; }
-.cortina-pay-header { min-height: 72px; padding: 14px 24px; background: #fff; border-bottom: 1px solid #d8e1e5; display: flex; align-items: center; }
-.cortina-pay-header { gap: 10px; }
-.cortina-pay-header img { width: 42px; height: 42px; object-fit: contain; }
-.cortina-pay-header strong { color: #153d54; font-size: 1.05rem; }
-.cortina-pay-panel { width: min(100% - 32px, 520px); align-self: center; justify-self: center; background: #fff; border: 1px solid #d8e1e5; border-radius: 8px; padding: 28px; box-shadow: 0 8px 24px rgba(20, 48, 64, .08); }
-.cortina-machine-heading { display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8eb; padding-bottom: 20px; }
-.cortina-machine-heading > svg { width: 42px; height: 42px; color: var(--primary-color); }
-.cortina-machine-heading p, .cortina-machine-heading h1 { margin: 0; }
-.cortina-machine-heading p { color: #59707d; font-size: .82rem; font-weight: 700; text-transform: uppercase; }
-.cortina-machine-heading h1 { font-size: 1.55rem; line-height: 1.25; }
-.washer-price, .dryer-price-control { padding: 26px 0 20px; }
-.washer-price { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; }
-.washer-price span { color: #59707d; font-weight: 600; }
-.washer-price strong, .dryer-price-control strong { font-size: 2.1rem; color: #112f40; }
-.washer-price p { grid-column: 1 / -1; color: #526873; line-height: 1.5; margin-top: 8px; }
-.dryer-price-control > div:first-child { display: flex; justify-content: space-between; align-items: baseline; }
-.dryer-price-control span { color: #526873; font-weight: 600; }
-.dryer-option-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
-.dryer-option-grid button { min-width: 0; min-height: 64px; padding: 8px 4px; border: 1px solid #9fb1bb; border-radius: 6px; background: #fff; color: #183b4f; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
-.dryer-option-grid button.selected { border-color: var(--primary-color); background: #e8f3f8; box-shadow: inset 0 0 0 1px var(--primary-color); }
-.dryer-option-grid button span { color: inherit; font-size: .9rem; }
-.dryer-option-grid button strong { color: inherit; font-size: 1rem; }
-.dryer-price-control > p { margin: 12px 0 0; color: #526873; font-size: .82rem; text-align: center; }
-.cortina-payment-actions { display: grid; gap: 10px; }
-.cortina-payment-actions button { min-height: 48px; border: 0; border-radius: 6px; background: var(--primary-color); color: #fff; font: inherit; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 9px; cursor: pointer; }
-.cortina-payment-actions button.secondary { background: #fff; color: #183b4f; border: 1px solid #9fb1bb; }
-.cortina-payment-actions svg { width: 20px; }
-.loyalty-note { color: #526873; font-size: .85rem; line-height: 1.45; margin-top: 18px; text-align: center; }
-.cortina-state { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
-.cortina-state svg { width: 48px; height: 48px; color: var(--primary-color); }
-.cortina-state h1, .cortina-state p { margin: 0; }
-.cortina-state p { max-width: 360px; color: #526873; line-height: 1.5; }
-.cortina-state.success svg { color: #16834f; }
-.cortina-state.failed svg { color: #b24435; }
-.spin { animation: cortina-spin 1s linear infinite; }
-@keyframes cortina-spin { to { transform: rotate(360deg); } }
-.cortina-pay-shell footer { padding: 20px; text-align: center; color: #637985; font-size: .78rem; }
-@media (max-width: 540px) { .cortina-pay-panel { width: 100%; align-self: stretch; border-width: 1px 0; border-radius: 0; box-shadow: none; padding: 24px 20px; } }
+.cortina-pay-shell,
+.cortina-pay-shell * {
+  box-sizing: border-box;
+}
+
+.cortina-pay-shell {
+  --pay-blue: #176b9b;
+  --pay-blue-dark: #113f58;
+  --pay-yellow: #f3c404;
+  --pay-ink: #152630;
+  --pay-muted: #5b6e79;
+  --pay-line: #d8e1e6;
+  --pay-soft: #f2f5f7;
+  min-height: 100svh;
+  background: #eef3f5;
+  color: var(--pay-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.cortina-pay-header {
+  min-height: 70px;
+  padding: 10px clamp(18px, 4vw, 52px);
+  background: #fff;
+  border-bottom: 1px solid var(--pay-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.cortina-pay-brand {
+  color: var(--pay-blue-dark);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cortina-pay-brand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.cortina-pay-brand span {
+  display: grid;
+  line-height: 1.05;
+}
+
+.cortina-pay-brand strong {
+  font-size: 1.02rem;
+}
+
+.cortina-pay-brand small {
+  margin-top: 4px;
+  color: var(--pay-muted);
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cortina-header-trust {
+  color: #3f5967;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cortina-header-trust svg {
+  width: 19px;
+  height: 19px;
+  color: #148054;
+}
+
+.cortina-pay-stage {
+  width: min(100%, 1220px);
+  margin: 0 auto;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(500px, 1.1fr);
+  gap: 32px;
+  align-items: stretch;
+}
+
+.cortina-brand-scene {
+  min-height: 690px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  border: 1px solid #cad6dc;
+  overflow: hidden;
+  position: relative;
+}
+
+.cortina-scene-brand {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  width: 210px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 4px solid var(--pay-yellow);
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(10, 38, 53, 0.2);
+}
+
+.cortina-scene-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cortina-pay-panel {
+  width: 100%;
+  max-width: 620px;
+  align-self: center;
+  background: #fff;
+  border: 1px solid var(--pay-line);
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 14px 40px rgba(18, 52, 70, 0.1);
+}
+
+.cortina-checkout-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.cortina-checkout-intro h1,
+.cortina-checkout-intro p,
+.cortina-machine-copy h2,
+.cortina-machine-copy span,
+.washer-cycle-note p,
+.dryer-price-control p,
+.loyalty-note p,
+.cortina-state h1,
+.cortina-state p {
+  margin: 0;
+}
+
+.cortina-eyebrow {
+  color: var(--pay-blue);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cortina-checkout-intro h1 {
+  margin-top: 3px;
+  font-size: 1.55rem;
+  line-height: 1.2;
+}
+
+.cortina-checkout-intro > svg {
+  width: 25px;
+  height: 25px;
+  color: #148054;
+}
+
+.cortina-steps {
+  list-style: none;
+  margin: 22px 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--pay-line);
+  border-bottom: 1px solid var(--pay-line);
+}
+
+.cortina-steps li {
+  min-height: 52px;
+  color: #7b8b94;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cortina-steps li + li {
+  border-left: 1px solid var(--pay-line);
+}
+
+.cortina-steps li span {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #abb8bf;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.7rem;
+}
+
+.cortina-steps li span svg {
+  width: 13px;
+  height: 13px;
+}
+
+.cortina-steps li.complete,
+.cortina-steps li.active {
+  color: var(--pay-blue-dark);
+}
+
+.cortina-steps li.complete span {
+  background: #e7f5ee;
+  border-color: #148054;
+  color: #148054;
+}
+
+.cortina-steps li.active span {
+  background: var(--pay-yellow);
+  border-color: var(--pay-yellow);
+  color: #17242c;
+}
+
+.cortina-machine-summary {
+  min-height: 112px;
+  padding: 18px;
+  background: var(--pay-blue-dark);
+  border-top: 4px solid var(--pay-yellow);
+  border-radius: 8px;
+  color: #fff;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+}
+
+.cortina-machine-icon {
+  width: 46px;
+  height: 46px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.cortina-machine-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.cortina-machine-copy {
+  min-width: 0;
+}
+
+.cortina-machine-copy span,
+.cortina-machine-total span {
+  color: #c9dce7;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cortina-machine-copy h2 {
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  font-size: 1.28rem;
+  line-height: 1.2;
+}
+
+.cortina-machine-total {
+  text-align: right;
+  display: grid;
+  justify-items: end;
+}
+
+.cortina-machine-total strong {
+  margin-top: 2px;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.washer-cycle-note {
+  margin-top: 12px;
+  padding: 13px 14px;
+  background: var(--pay-soft);
+  border: 1px solid var(--pay-line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.washer-cycle-note > span {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  background: #fff4c7;
+  border-radius: 8px;
+  color: var(--pay-blue);
+  display: grid;
+  place-items: center;
+}
+
+.washer-cycle-note svg {
+  width: 21px;
+  height: 21px;
+}
+
+.washer-cycle-note strong {
+  font-size: 0.9rem;
+}
+
+.washer-cycle-note p {
+  margin-top: 2px;
+  color: var(--pay-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.cortina-payment-section,
+.dryer-price-control {
+  margin-top: 22px;
+}
+
+.cortina-section-heading {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cortina-section-heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.cortina-section-heading span,
+.cortina-section-heading small {
+  color: var(--pay-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cortina-section-heading strong {
+  font-size: 0.95rem;
+}
+
+.cortina-card-payment,
+.cortina-wallet-payment {
+  width: 100%;
+  min-height: 66px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+}
+
+.cortina-card-payment {
+  background: var(--pay-blue);
+  border: 2px solid var(--pay-blue);
+  color: #fff;
+}
+
+.cortina-card-payment:hover,
+.cortina-card-payment:focus-visible {
+  background: #115f8d;
+  border-color: #115f8d;
+}
+
+.cortina-wallet-payment {
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #aebdc5;
+  color: var(--pay-ink);
+}
+
+.cortina-wallet-payment:hover,
+.cortina-wallet-payment:focus-visible {
+  border-color: var(--pay-blue);
+  background: #f7fbfd;
+}
+
+.cortina-payment-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+}
+
+.cortina-card-payment .cortina-payment-icon {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.cortina-wallet-payment .cortina-payment-icon {
+  background: #eaf4f8;
+  color: var(--pay-blue);
+}
+
+.cortina-payment-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.cortina-card-payment > span:nth-child(2),
+.cortina-wallet-payment > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.cortina-card-payment strong,
+.cortina-wallet-payment strong {
+  font-size: 0.88rem;
+}
+
+.cortina-card-payment small,
+.cortina-wallet-payment small {
+  color: inherit;
+  font-size: 0.7rem;
+  opacity: 0.78;
+}
+
+.cortina-pay-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.cortina-pay-amount svg,
+.cortina-wallet-payment > svg {
+  width: 17px;
+  height: 17px;
+}
+
+.loyalty-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--pay-yellow);
+  background: #fff9df;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.loyalty-note > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  color: var(--pay-blue);
+}
+
+.loyalty-note strong {
+  font-size: 0.8rem;
+}
+
+.loyalty-note p {
+  margin-top: 2px;
+  color: #586970;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.cortina-secure-note {
+  margin-top: 14px;
+  color: var(--pay-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.cortina-secure-note svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: #148054;
+}
+
+.dryer-option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dryer-option-grid button {
+  min-width: 0;
+  min-height: 60px;
+  padding: 7px 4px;
+  border: 1px solid #aebdc5;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--pay-blue-dark);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.dryer-option-grid button:hover,
+.dryer-option-grid button:focus-visible {
+  border-color: var(--pay-blue);
+  background: #f7fbfd;
+}
+
+.dryer-option-grid button.selected {
+  border: 2px solid var(--pay-blue);
+  background: #e9f4f8;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.dryer-option-grid button span {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.dryer-option-grid button strong {
+  font-size: 0.88rem;
+}
+
+.cortina-state {
+  min-height: 560px;
+  padding: 44px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cortina-state-icon {
+  width: 68px;
+  height: 68px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  background: #e9f4f8;
+  color: var(--pay-blue);
+  display: grid;
+  place-items: center;
+}
+
+.cortina-state-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.cortina-state h1 {
+  margin-top: 5px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.cortina-state > p:last-of-type {
+  max-width: 390px;
+  margin-top: 10px;
+  color: var(--pay-muted);
+  line-height: 1.55;
+}
+
+.cortina-state.success .cortina-state-icon {
+  background: #e7f5ee;
+  color: #148054;
+}
+
+.cortina-state.failed .cortina-state-icon {
+  background: #fff0ed;
+  color: #b34035;
+}
+
+.cortina-progress-pulse {
+  margin-top: 24px;
+  padding: 9px 13px;
+  border: 1px solid var(--pay-line);
+  border-radius: 6px;
+  color: #405762;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cortina-progress-pulse i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pay-yellow);
+  animation: cortina-pulse 1.4s ease-in-out infinite;
+}
+
+.cortina-state-action,
+.cortina-state-links button,
+.cortina-state-links a {
+  min-height: 44px;
+  border-radius: 7px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.cortina-state-action {
+  min-width: 160px;
+  margin-top: 24px;
+  padding: 0 22px;
+  background: var(--pay-blue);
+  color: #fff;
+  text-decoration: none;
+}
+
+.cortina-state-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cortina-state-links {
+  margin-top: 24px;
+  display: flex;
+  gap: 9px;
+}
+
+.cortina-state-links button,
+.cortina-state-links a {
+  padding: 0 18px;
+}
+
+.cortina-state-links button {
+  border: 0;
+  background: var(--pay-blue);
+  color: #fff;
+}
+
+.cortina-state-links a {
+  border: 1px solid #aebdc5;
+  color: var(--pay-blue-dark);
+  text-decoration: none;
+}
+
+.spin {
+  animation: cortina-spin 1s linear infinite;
+}
+
+@keyframes cortina-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cortina-pulse {
+  50% { opacity: 0.35; }
+}
+
+.cortina-pay-footer {
+  min-height: 60px;
+  padding: 14px clamp(18px, 4vw, 52px);
+  background: #fff;
+  border-top: 1px solid var(--pay-line);
+  color: #657781;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 0.72rem;
+}
+
+.cortina-pay-footer nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.cortina-pay-footer a {
+  color: #3f5967;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cortina-pay-footer a:hover,
+.cortina-pay-footer a:focus-visible {
+  color: var(--pay-blue);
+  text-decoration: underline;
+}
+
+.cortina-pay-footer svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 860px) {
+  .cortina-pay-stage {
+    display: block;
+    padding: 24px 20px;
+  }
+
+  .cortina-brand-scene {
+    display: none;
+  }
+
+  .cortina-pay-panel {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .cortina-pay-header {
+    min-height: 62px;
+    padding: 8px 15px;
+  }
+
+  .cortina-pay-brand img {
+    width: 39px;
+    height: 39px;
+  }
+
+  .cortina-pay-brand strong {
+    font-size: 0.92rem;
+  }
+
+  .cortina-pay-brand small {
+    font-size: 0.58rem;
+  }
+
+  .cortina-header-trust span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .cortina-header-trust svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .cortina-pay-stage {
+    padding: 0;
+  }
+
+  .cortina-pay-panel {
+    max-width: none;
+    min-height: calc(100svh - 62px);
+    padding: 22px 16px 24px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .cortina-checkout-intro h1 {
+    font-size: 1.35rem;
+  }
+
+  .cortina-steps {
+    margin: 18px 0;
+  }
+
+  .cortina-steps li {
+    min-height: 46px;
+  }
+
+  .cortina-machine-summary {
+    min-height: 104px;
+    padding: 15px;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .cortina-machine-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .cortina-machine-copy h2 {
+    font-size: 1.08rem;
+  }
+
+  .cortina-machine-total strong {
+    font-size: 1.52rem;
+  }
+
+  .cortina-card-payment,
+  .cortina-wallet-payment {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+
+  .cortina-payment-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .cortina-pay-footer {
+    padding: 16px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .cortina-state {
+    min-height: calc(100svh - 170px);
+    padding: 36px 8px;
+  }
+}
+
+@media (max-width: 370px) {
+  .cortina-machine-summary {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .cortina-machine-total {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .cortina-card-payment,
+  .cortina-wallet-payment {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .cortina-pay-amount,
+  .cortina-wallet-payment > svg {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .cortina-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .cortina-progress-pulse i {
+    animation: none;
+  }
+}

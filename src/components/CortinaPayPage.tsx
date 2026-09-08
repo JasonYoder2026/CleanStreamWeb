@@ -1,9 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Clock3, CreditCard, LoaderCircle, WalletCards, WashingMachine } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import {
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  Headphones,
+  LoaderCircle,
+  LockKeyhole,
+  ShieldCheck,
+  SlidersHorizontal,
+  WalletCards,
+  WashingMachine,
+} from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useCortinaVend } from "../di/container";
 import type { CortinaQuote, CortinaVendReference } from "../interfaces/CortinaVendService";
 import icon from "../assets/Icon-web.png";
+import logo from "../assets/Logo-web.png";
+import laundromat from "../assets/laundromat-hero.jpg";
 import "../styles/CortinaPay.css";
 
 const TERMINAL_FAILURES = new Set(["failed", "refunded", "timed_out", "support_required", "voided"]);
@@ -110,56 +125,82 @@ function CortinaPayPage() {
   return (
     <main className="cortina-pay-shell">
       <header className="cortina-pay-header">
-        <img src={icon} alt="" />
-        <strong>Clean Stream Laundry</strong>
+        <a className="cortina-pay-brand" href="/" aria-label="Clean Stream Laundry home">
+          <img src={icon} alt="" />
+          <span><strong>Clean Stream</strong><small>Laundry Solutions</small></span>
+        </a>
+        <div className="cortina-header-trust"><ShieldCheck /><span>Secure machine payment</span></div>
       </header>
-      <section className="cortina-pay-panel" aria-live="polite">
-        {state === "loading" && <div className="cortina-state"><LoaderCircle className="spin" /><h1>Loading machine</h1></div>}
-        {state === "paying" && <div className="cortina-state"><LoaderCircle className="spin" /><h1>Securing payment</h1></div>}
-        {state === "pending" && <div className="cortina-state"><Clock3 /><h1>Starting machine</h1><p>{message || "Payment received. Waiting for the machine to confirm."}</p></div>}
-        {state === "started" && <div className="cortina-state success"><CheckCircle2 /><h1>Machine started</h1><p>{(quote ? quote.machineType === "washer" : isWasherVend) ? "Select your wash cycle on the machine." : "Your purchased time has been added."}</p></div>}
-        {state === "failed" && <div className="cortina-state failed"><WashingMachine /><h1>Unable to continue</h1><p>{message}</p></div>}
-        {state === "ready" && quote && (
-          <>
-            <div className="cortina-machine-heading">
-              <WashingMachine />
-              <div><p>{quote.machineType === "washer" ? quote.washerSizeLabel ?? "Washer" : "Dryer"}</p><h1>{quote.machineName}</h1></div>
-            </div>
-            {quote.dryer ? (
-              <div className="dryer-price-control">
-                <div><strong>{money(amountCents)}</strong><span>{selectedDryerOption?.minutes} minutes</span></div>
-                <div className="dryer-option-grid" role="group" aria-label="Dryer time">
-                  {quote.dryer.options.map((option) => (
-                    <button
-                      key={option.minutes}
-                      type="button"
-                      aria-pressed={option.amountCents === amountCents}
-                      className={option.amountCents === amountCents ? "selected" : ""}
-                      onClick={() => {
-                        cardRequestId.current = null;
-                        walletRequestId.current = null;
-                        setAmountCents(option.amountCents);
-                      }}
-                    >
-                      <span>{option.minutes} min</span>
-                      <strong>{money(option.amountCents)}</strong>
-                    </button>
-                  ))}
-                </div>
-                <p>$0.25 per 5 minutes</p>
+      <div className="cortina-pay-stage">
+        <aside className="cortina-brand-scene" style={{ backgroundImage: `url(${laundromat})` }} aria-label="Clean Stream laundromat">
+          <div className="cortina-scene-brand"><img src={logo} alt="Clean Stream Laundry Solutions" /></div>
+        </aside>
+        <section className="cortina-pay-panel" aria-live="polite" aria-busy={state === "loading" || state === "paying"}>
+          {state === "loading" && <div className="cortina-state"><span className="cortina-state-icon"><LoaderCircle className="spin" /></span><p className="cortina-eyebrow">One moment</p><h1>Finding your machine</h1><p>We’re confirming the machine and its current price.</p></div>}
+          {state === "paying" && <div className="cortina-state"><span className="cortina-state-icon"><LoaderCircle className="spin" /></span><p className="cortina-eyebrow">Payment in progress</p><h1>Opening secure checkout</h1><p>Keep this page open while Stripe prepares your payment.</p></div>}
+          {state === "pending" && <div className="cortina-state"><span className="cortina-state-icon"><Clock3 /></span><p className="cortina-eyebrow">Payment received</p><h1>Starting your machine</h1><p>{message || "Waiting for the machine to confirm. This normally takes only a moment."}</p><div className="cortina-progress-pulse"><i /><span>Connecting securely</span></div></div>}
+          {state === "started" && <div className="cortina-state success"><span className="cortina-state-icon"><CheckCircle2 /></span><p className="cortina-eyebrow">You’re all set</p><h1>Machine started</h1><p>{(quote ? quote.machineType === "washer" : isWasherVend) ? "Select your wash cycle on the machine." : "Your purchased time has been added."}</p><a className="cortina-state-action" href="/">Done<Check /></a></div>}
+          {state === "failed" && <div className="cortina-state failed"><span className="cortina-state-icon"><WashingMachine /></span><p className="cortina-eyebrow">We couldn’t finish</p><h1>Unable to continue</h1><p>{message}</p><div className="cortina-state-links"><button type="button" onClick={() => window.location.reload()}>Try again</button><Link to="/support">Contact support</Link></div></div>}
+          {state === "ready" && quote && (
+            <>
+              <div className="cortina-checkout-intro">
+                <div><p className="cortina-eyebrow">Machine payment</p><h1>Review and pay</h1></div>
+                <ShieldCheck aria-label="Verified Clean Stream machine" />
               </div>
-            ) : (
-              <div className="washer-price"><span>Total</span><strong>{money(amountCents)}</strong><p>Choose temperature and cycle settings on the washer after it starts.</p></div>
-            )}
-            <div className="cortina-payment-actions">
-              <button onClick={payByCard}><CreditCard />Pay with card</button>
-              {signedIn && <button className="secondary" onClick={payByWallet}><WalletCards />Use Clean Stream wallet</button>}
-            </div>
-            {!signedIn && <p className="loyalty-note">Use the Clean Stream Loyalty app next time to pay with your wallet and manage rewards.</p>}
-          </>
-        )}
-      </section>
-      <footer>Secure payment by Clean Stream Laundry</footer>
+              <ol className="cortina-steps" aria-label="Payment progress">
+                <li className="complete"><span><Check /></span>Scan</li>
+                <li className="active"><span>2</span>Pay</li>
+                <li><span>3</span>Start</li>
+              </ol>
+              <div className="cortina-machine-summary">
+                <div className="cortina-machine-icon"><WashingMachine /></div>
+                <div className="cortina-machine-copy">
+                  <span>{quote.machineType === "washer" ? quote.washerSizeLabel ?? "Washer" : `${selectedDryerOption?.minutes ?? ""} minute dry`}</span>
+                  <h2>{quote.machineName}</h2>
+                </div>
+                <div className="cortina-machine-total"><span>Total</span><strong>{money(amountCents)}</strong></div>
+              </div>
+              {quote.dryer ? (
+                <div className="dryer-price-control">
+                  <div className="cortina-section-heading"><div><span>Drying time</span><strong>{selectedDryerOption?.minutes} minutes</strong></div><small>$0.25 per 5 minutes</small></div>
+                  <div className="dryer-option-grid" role="group" aria-label="Dryer time">
+                    {quote.dryer.options.map((option) => (
+                      <button
+                        key={option.minutes}
+                        type="button"
+                        aria-pressed={option.amountCents === amountCents}
+                        className={option.amountCents === amountCents ? "selected" : ""}
+                        onClick={() => {
+                          cardRequestId.current = null;
+                          walletRequestId.current = null;
+                          setAmountCents(option.amountCents);
+                        }}
+                      >
+                        <span>{option.minutes} min</span>
+                        <strong>{money(option.amountCents)}</strong>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="washer-cycle-note"><span><SlidersHorizontal /></span><div><strong>Choose your cycle at the washer</strong><p>Choose temperature and cycle settings on the washer after it starts.</p></div></div>
+              )}
+              <div className="cortina-payment-section">
+                <div className="cortina-section-heading"><div><span>Payment method</span><strong>How would you like to pay?</strong></div></div>
+                <button className="cortina-card-payment" onClick={payByCard}>
+                  <span className="cortina-payment-icon"><CreditCard /></span>
+                  <span><strong>Credit or debit card</strong><small>Secure checkout powered by Stripe</small></span>
+                  <span className="cortina-pay-amount">Pay {money(amountCents)}<ArrowRight /></span>
+                </button>
+                {signedIn && <button className="cortina-wallet-payment" aria-label="Use Clean Stream wallet" onClick={payByWallet}><span className="cortina-payment-icon"><WalletCards /></span><span><strong>Clean Stream wallet</strong><small>Use your available loyalty balance</small></span><ArrowRight /></button>}
+              </div>
+              {!signedIn && <div className="loyalty-note"><WalletCards /><div><strong>Clean Stream Loyalty member?</strong><p>Open this QR in the app to use your wallet and rewards.</p></div></div>}
+              <div className="cortina-secure-note"><LockKeyhole /><span>Your payment details are encrypted and handled securely by Stripe.</span></div>
+            </>
+          )}
+        </section>
+      </div>
+      <footer className="cortina-pay-footer"><span>© 2026 Clean Stream Laundry Solutions</span><nav aria-label="Payment page links"><Link to="/support"><Headphones />Support</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></footer>
     </main>
   );
 }
